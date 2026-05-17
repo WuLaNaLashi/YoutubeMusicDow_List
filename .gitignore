@@ -1,0 +1,6 @@
+downloads/**
+cache
+cache/**
+logs/**
+.claude
+.claude/**
