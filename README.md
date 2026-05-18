@@ -112,9 +112,10 @@ YT_Music/
 
 ### 系统要求
 
-- macOS / Linux(脚本里部分路径绝对路径写死了 macOS 用户目录,Linux 自行调整)
+- macOS / Linux
 - Python ≥ 3.10
 - `ffmpeg`(用于容器重封装和封面/元数据嵌入,**不**用于音频编解码)
+- `deno`(yt-dlp 默认依赖 deno 解决 YouTube 的 JS 挑战;没有 deno 的话见 [安装步骤](#安装步骤) 的替代方案)
 - 能访问 YouTube(境内自行解决代理问题)
 
 ### 安装步骤
@@ -123,9 +124,25 @@ YT_Music/
 # 1. 装 ffmpeg(macOS)
 brew install ffmpeg
 
-# 2. 装 Python 依赖
+# Linux (Ubuntu/Debian)
+sudo apt install ffmpeg
+
+# 2. 装 deno (yt-dlp 依赖它解决 YouTube JS 挑战)
+curl -fsSL https://deno.land/install.sh | sh
+# 装完重启 shell 或 source ~/.bashrc / ~/.zshrc
+
+# 3. 装 Python 依赖
 pip install -r requirements.txt
 ```
+
+**不想装 deno?** 可以用 Node.js 替代。在 `downloader.py` 的 `_build_ydl_opts` 函数返回值前加两行:
+
+```python
+opts["js_runtimes"] = ["node"]
+opts["remote_components"] = ["ejs:github"]
+```
+
+此修改让 yt-dlp 用 node 解决 YouTube JS 挑战,无需安装 deno。
 
 `requirements.txt` 内容:
 ```
@@ -515,6 +532,13 @@ A: 能,但需要代理。在 `config.py` 设:
 ```python
 PROXY = "http://127.0.0.1:7890"   # 或者 socks5://127.0.0.1:1080
 ```
+
+**Q: 报错 `Requested format is not available`**  
+A: 这是 yt-dlp 缺少 JS 运行时导致的。YouTube 要求客户端解决 JS 挑战才能拿到音视频格式,解决失败时返回的格式列表只剩图片。装 deno 即可:
+```bash
+curl -fsSL https://deno.land/install.sh | sh
+```
+不想装 deno 的话,见 [安装步骤](#安装步骤) 里的 node 替代方案。
 
 **Q: 报错 `ERROR: Postprocessing: Supported filetypes for thumbnail embedding are: mp3, mkv/mka, ogg/opus/flac, m4a/mp4/m4v/mov`**  
 A: 这说明 webm→opus 重封装没生效。检查 `downloader.py` 的 `_build_ydl_opts`,确认 `FFmpegVideoRemuxer` postprocessor 在 `EmbedThumbnail` 之前。
