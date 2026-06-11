@@ -6,3 +6,4 @@ logs/**
 .claude/**
 **/__pycache__/**
 **/__pycache__
+cookies.txt

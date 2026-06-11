@@ -12,6 +12,7 @@ FAILED_LOG = LOGS_DIR / "failed.json"
 SEARCH_CACHE = CACHE_DIR / "search_cache.json"
 
 FORMAT_PREFERENCE = "bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio"
+# FORMAT_PREFERENCE = "bestaudio[ext=m4a]/bestaudio[ext=m4a]/bestaudio"
 EMBED_THUMBNAIL = True
 EMBED_METADATA = True
 
@@ -23,7 +24,7 @@ SKIP_KEYWORDS = [
     # Karaoke / off-vocal
     "karaoke", "伴奏", "off vocal", "off-vocal", "(mr)", " mr ", "mr版",
     # Cover by others (note: bare "cover" is too aggressive — songs have "cover" in legit titles)
-    "cover by", "翻唱", "翻唱版",
+    "cover by", "翻唱", "翻唱版","cover",
     # Piano / instrumental versions
     "piano cover", "piano version", "piano ver.", "piano ver",
     "钢琴版", "鋼琴版", "钢琴cover", "钢琴 cover",
@@ -31,7 +32,7 @@ SKIP_KEYWORDS = [
     "instrumental", "纯伴奏", "純伴奏",
     # Other unwanted variants
     "nightcore", "mmd", "8d audio", "sped up", "slowed",
-    "配樂", "配乐",
+    "配樂", "配乐","演唱会","演唱會"
 ]
 
 # Artist names that indicate placeholder / cover artists, not the original singer.
@@ -55,6 +56,12 @@ DURATION_MAX_SEC = 1200
 SEARCH_LIMIT = 5
 
 PROXY = None
-COOKIES_FROM_BROWSER = None
+
+# Cookie 策略：优先使用 cookies 文件（更稳定）
+# 方式一：手动导出的 cookies.txt 文件路径
+# 方式一（推荐）：使用 cookies.txt 文件（Linux 下最稳定）
+COOKIES_FILE = str(PROJECT_ROOT / "cookies.txt")
+# 方式二：从浏览器自动提取（Linux 下常因 keyring 问题失败）
+COOKIES_FROM_BROWSER = ""  # "chrome" 或 "" 禁用
 
 TEST_SEED = 42

@@ -170,8 +170,12 @@ def _build_ydl_opts(out_template: str) -> dict:
     }
     if config.PROXY:
         opts["proxy"] = config.PROXY
-    if config.COOKIES_FROM_BROWSER:
+    if config.COOKIES_FILE:
+        opts["cookiefile"] = config.COOKIES_FILE
+    elif config.COOKIES_FROM_BROWSER:
         opts["cookiesfrombrowser"] = (config.COOKIES_FROM_BROWSER,)
+    if not config.COOKIES_FILE and not config.COOKIES_FROM_BROWSER:
+        log.warning("No cookies configured. YouTube Music may require authentication.")
     return opts
 
 
