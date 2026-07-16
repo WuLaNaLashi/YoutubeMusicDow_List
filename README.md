@@ -90,7 +90,8 @@ YT_Music/
 │   ├── check_matches.py        # 校验:请求 vs 实际,出 markdown 报告
 │   ├── organize_by_check.py    # 把文件按分类挪进子目录
 │   ├── rename_by_metadata.py   # 按嵌入元数据批量改名
-│   └── list_non_catalog.py     # 找出非 YT Music 编录的下载
+│   ├── list_non_catalog.py     # 找出非 YT Music 编录的下载
+│   └── opus2mp3.py             # opus→mp3 转码(保留封面/标签,输出到 mp3/)
 │
 ├── downloads/                  # 下载产物(.opus)
 │   └── {Artist} - {Title}.opus
@@ -357,6 +358,40 @@ Optional:
 - ✅ **catalog**: 正版编录
 - 🟡 **catalog_no_album**: 是编录但 album 字段空
 - ❌ **non_catalog**: 普通视频 / fallback(需要人工 review)
+
+---
+
+### `opus2mp3.py` — opus 转 mp3(保留封面/标签)
+
+把某个目录下的 `.opus` 批量转码为 `.mp3`。opus→mp3 是有损→有损,所以用 **320 kbps CBR**(`libmp3lame` 的上限)把音质损失压到最小。内嵌封面(`METADATA_BLOCK_PICTURE`)和常见文本标签(title/artist/album/genre/date)用 mutagen 拷进 mp3 的 ID3v2.4,**封面按字节原样保留**。
+
+```
+usage: opus2mp3.py [-h] --dir DIR [--recursive] [--bitrate BITRATE]
+                   [--delete-original] [--apply]
+
+  --dir DIR            要转码的目录(必填)
+  --recursive          连子目录一起扫
+  --bitrate            libmp3lame CBR 码率,默认 320k(mp3 上限)
+  --delete-original    转码成功后删除源 .opus(默认保留)
+  --apply              实际执行(默认 dry-run)
+```
+
+输出统一进 `--dir/mp3/` 子文件夹(自动创建、扁平化、同名加 ` (2)` 避免覆盖)。
+
+**示例**:
+
+```bash
+# 预览会转哪些
+python src/opus2mp3.py --dir downloads
+
+# 正式转码(源 opus 保留)
+python src/opus2mp3.py --dir downloads --apply
+
+# 递归 + 转码后删源
+python src/opus2mp3.py --dir downloads --recursive --apply --delete-original
+```
+
+> 无需新增依赖:复用 mutagen(已在 requirements.txt)+ 系统 ffmpeg。播放兼容:ID3v2.4 + UTF-8,现代播放器/手机/PC 均可正常显示封面与中日韩标签。
 
 ---
 
