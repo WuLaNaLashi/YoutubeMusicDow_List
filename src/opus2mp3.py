@@ -16,11 +16,14 @@ Examples:
   python src/opus2mp3.py --dir /path/to/songs --apply
   # recursive + delete source opus after a successful transcode
   python src/opus2mp3.py --dir /path/to/songs --recursive --apply --delete-original
+  # parallel transcode (8 workers; default 4; --jobs 1 falls back to serial)
+  python src/opus2mp3.py --dir /path/to/songs --apply --jobs 8
 """
 from __future__ import annotations
 
 import argparse
 import base64
+import concurrent.futures
 import subprocess
 import sys
 from pathlib import Path
@@ -46,6 +49,10 @@ _TAG_MAP = {
     "album": TALB,
     "genre": TCON,
 }
+
+# Parallel transcode worker count. ffmpeg is invoked as an external process,
+# so Python releases the GIL while waiting — threads give real speedup.
+_DEFAULT_JOBS = 4
 
 
 def find_opus_files(root: Path, recursive: bool) -> list[Path]:
@@ -119,11 +126,19 @@ def main(argv=None) -> int:
                    help="Delete source .opus after a successful transcode")
     p.add_argument("--apply", action="store_true",
                    help="Actually transcode. Without this, runs dry-run.")
+    p.add_argument("-j", "--jobs", type=int, default=_DEFAULT_JOBS,
+                   help=f"Parallel worker count (default {_DEFAULT_JOBS}). "
+                        f"ffmpeg runs as a subprocess so the GIL is released "
+                        f"during encoding — real parallelism. Pass 1 for serial.")
     args = p.parse_args(argv)
 
     root = Path(args.dir)
     if not root.is_dir():
         print(f"Not a directory: {root}", file=sys.stderr)
+        return 1
+
+    if args.jobs < 1:
+        print(f"--jobs must be >= 1, got {args.jobs}", file=sys.stderr)
         return 1
 
     files = find_opus_files(root, args.recursive)
@@ -141,7 +156,7 @@ def main(argv=None) -> int:
         used.add(name)
         plan.append((src, out_dir / name))
 
-    print(f"Dir: {root}  recursive={args.recursive}  bitrate={args.bitrate}")
+    print(f"Dir: {root}  recursive={args.recursive}  bitrate={args.bitrate}  jobs={args.jobs}")
     print(f"Found {len(files)} .opus file(s) -> mp3/\n")
     if not files:
         return 0
@@ -156,22 +171,57 @@ def main(argv=None) -> int:
 
     out_dir.mkdir(exist_ok=True)
     ok = fail = 0
-    for i, (src, dst) in enumerate(plan, 1):
-        print(f"[{i}/{len(plan)}] {src.name}")
+
+    def _run_one(src: Path, dst: Path) -> tuple[list[str] | str, bool]:
+        """Encode one file inside a worker. Does NOT print (output would
+        interleave with other workers). Returns (labels_or_errmsg, is_ok);
+        swallows exceptions so the executor never re-raises."""
         try:
             transcode(src, dst, args.bitrate)
             _, copied = copy_metadata(src, dst)
-            print(f"      -> mp3/{dst.name}  [{', '.join(copied) or 'no-tags'}]")
-            if args.delete_original:
-                src.unlink()
-                print("      deleted source opus")
-            ok += 1
+            return (copied, True)
         except subprocess.CalledProcessError as e:
-            print(f"      FAIL ffmpeg rc={e.returncode}", file=sys.stderr)
-            fail += 1
+            return (f"FAIL ffmpeg rc={e.returncode}", False)
         except Exception as e:
-            print(f"      FAIL {type(e).__name__}: {e}", file=sys.stderr)
-            fail += 1
+            return (f"FAIL {type(e).__name__}: {e}", False)
+
+    # --jobs 1 keeps the original serial behaviour (bit-for-bit identical
+    # output ordering, useful for debugging / diffing against old runs).
+    if args.jobs == 1:
+        for i, (src, dst) in enumerate(plan, 1):
+            result, is_ok = _run_one(src, dst)
+            if is_ok:
+                ok += 1
+                print(f"[{i}/{len(plan)}] {src.name}\n"
+                      f"      -> mp3/{dst.name}  [{', '.join(result) or 'no-tags'}]")
+                if args.delete_original:
+                    src.unlink()
+                    print("      deleted source opus")
+            else:
+                fail += 1
+                print(f"[{i}/{len(plan)}] {src.name}\n      {result}", file=sys.stderr)
+    else:
+        completed = 0
+        with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as ex:
+            future_to_item = {ex.submit(_run_one, src, dst): (src, dst)
+                              for src, dst in plan}
+            for fut in concurrent.futures.as_completed(future_to_item):
+                src, dst = future_to_item[fut]
+                completed += 1
+                result, is_ok = fut.result()  # _run_one swallowed exc already
+                if is_ok:
+                    ok += 1
+                    # One print call per file → multi-line output is atomic,
+                    # no lock needed (print holds stdout's lock across the call).
+                    print(f"[{completed}/{len(plan)}] {src.name}\n"
+                          f"      -> mp3/{dst.name}  [{', '.join(result) or 'no-tags'}]")
+                    if args.delete_original:
+                        src.unlink()
+                        print("      deleted source opus")
+                else:
+                    fail += 1
+                    print(f"[{completed}/{len(plan)}] {src.name}\n      {result}",
+                          file=sys.stderr)
 
     extra = " | sources deleted" if args.delete_original else ""
     print(f"\nDone. transcoded={ok} failed={fail}{extra}")
