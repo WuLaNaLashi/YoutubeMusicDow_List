@@ -53,6 +53,30 @@
 - [常见问题 (FAQ)](#常见问题-faq)
 - [已知限制](#已知限制)
 - [依赖](#依赖)
+- [📖 详细文档（docs/）](#-详细文档docs)
+
+---
+
+## 📖 详细文档（docs/）
+
+每个脚本的**深度使用说明**（参数表、典型场景、排错、内部原理）都独立成一份 markdown，放在 [`docs/`](docs/) 目录。本 README 是总览，docs/ 是深入参考。
+
+👉 **[docs/README.md](docs/README.md)** — 文档总索引（含工作流导图、场景速查）
+
+### 各脚本文档
+
+| 脚本 | 文档 | 一句话作用 |
+|------|------|-----------|
+| `src/main.py` | [docs/main.md](docs/main.md) | 批量下载入口（读歌单 → 搜索 → 下载）|
+| `src/opus2mp3.py` | [docs/opus2mp3.md](docs/opus2mp3.md) | opus → mp3 转码（保留封面/标签）|
+| `src/download_from_urls.py` | [docs/download_from_urls.md](docs/download_from_urls.md) | 用 YouTube URL 直接下载（跳过搜索）|
+| `src/check_matches.py` | [docs/check_matches.md](docs/check_matches.md) | 校验下载匹配质量，出报告 |
+| `src/organize_by_check.py` | [docs/organize_by_check.md](docs/organize_by_check.md) | 按分类挪文件到子目录 |
+| `src/rename_by_metadata.py` | [docs/rename_by_metadata.md](docs/rename_by_metadata.md) | 按内嵌元数据批量改名 |
+| `src/list_non_catalog.py` | [docs/list_non_catalog.md](docs/list_non_catalog.md) | 找出非 YT Music 正版编录的歌 |
+| `src/parse_list.py` | [docs/parse_list.md](docs/parse_list.md) | 歌单解析（main.py 的依赖）|
+| `src/export_cookies.py` | [docs/export_cookies.md](docs/export_cookies.md) | 从浏览器导出 YouTube cookies |
+| `find_duplicates.py` | [docs/find_duplicates.md](docs/find_duplicates.md) | 163 与 YT 跨源去重 |
 
 ---
 
