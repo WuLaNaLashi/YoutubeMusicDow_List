@@ -22,6 +22,38 @@ import type { SearchResult } from "./pickBest";
 import { runCommand, cancelTask, onLine, onDone, resolveProxy } from "../api/tauri";
 import { sanitizeFilename } from "./sanitize";
 import type { Row } from "../stores/downloadStore";
+import { readTextFile, writeTextFile, exists } from "@tauri-apps/plugin-fs";
+import { join } from "@tauri-apps/api/path";
+
+// ---- success.json / failed.json 持久化(断点续传依据) ----
+// 结构与原 Python 版兼容:{ [raw]: { ok, song, match, download } }
+export interface SuccessEntry {
+  ok: true;
+  song: Song;
+  match: { videoId: string; title: string; artists: string[] };
+  download: { filepath: string };
+}
+type SuccessMap = Record<string, SuccessEntry>;
+type FailedMap = Record<string, { ok: false; reason: string; song: Song }>;
+
+async function loadJson<T>(path: string, fallback: T): Promise<T> {
+  try {
+    if (await exists(path)) {
+      return JSON.parse(await readTextFile(path)) as T;
+    }
+  } catch (e) {
+    console.warn(`读取 ${path} 失败:`, e);
+  }
+  return fallback;
+}
+
+async function saveJson(path: string, data: unknown): Promise<void> {
+  try {
+    await writeTextFile(path, JSON.stringify(data, null, 2));
+  } catch (e) {
+    console.warn(`写入 ${path} 失败:`, e);
+  }
+}
 
 export interface OrchestratorCallbacks {
   onRowUpdate: (idx: number, patch: Partial<Row>) => void;
@@ -128,14 +160,35 @@ export async function runBatch(
   cb: OrchestratorCallbacks,
   isCancelled: () => boolean,
 ): Promise<void> {
-  for (let i = 0; i < rows.length; i++) {
-    if (isCancelled()) {
-      cb.onLog("warn", "用户停止,已完成的不丢失");
-      break;
-    }
+  // 加载持久化记录(断点续传)
+  const logsDir = await join(downloadsDir, "..", "logs").catch(() => "logs");
+  const successPath = await join(logsDir, "success.json").catch(() => "logs/success.json");
+  const failedPath = await join(logsDir, "failed.json").catch(() => "logs/failed.json");
+  const success = await loadJson<SuccessMap>(successPath, {});
+  const failed = await loadJson<FailedMap>(failedPath, {});
+  let successDirty = false;
+  let failedDirty = false;
+
+  /** 处理单首歌(搜索→打分→置信度→策略→下载)。返回是否需要写盘。 */
+  async function processOne(i: number): Promise<void> {
+    if (isCancelled()) return;
     const row = rows[i];
-    if (row.state === "done" || row.state === "skipped") continue;
+    if (row.state === "done" || row.state === "skipped") return;
     const song = row.song;
+
+    // 断点续传:success.json 里已成功的跳过
+    if (success[song.raw]?.ok) {
+      cb.onRowUpdate(i, {
+        state: "done",
+        filepath: success[song.raw].download.filepath,
+        match: {
+          id: success[song.raw].match.videoId,
+          title: success[song.raw].match.title,
+          uploader: success[song.raw].match.artists.join("/"),
+        } as SearchResult,
+      });
+      return;
+    }
 
     // 1. 搜索
     cb.onRowUpdate(i, { state: "searching", match: null, confidence: null, reason: null, flags: [] });
@@ -149,13 +202,17 @@ export async function runBatch(
     } catch (e) {
       cb.onRowUpdate(i, { state: "failed", failReason: `搜索失败: ${e}` });
       cb.onLog("err", `  搜索失败: ${e}`);
-      continue;
+      failed[song.raw] = { ok: false, reason: `搜索失败: ${e}`, song };
+      failedDirty = true;
+      return;
     }
 
     if (candidates.length === 0) {
       cb.onRowUpdate(i, { state: "failed", failReason: "无搜索结果" });
       cb.onLog("warn", "  无搜索结果");
-      continue;
+      failed[song.raw] = { ok: false, reason: "无搜索结果", song };
+      failedDirty = true;
+      return;
     }
 
     // 2. 打分
@@ -171,7 +228,9 @@ export async function runBatch(
     if (scored.length === 0) {
       cb.onRowUpdate(i, { state: "failed", failReason: "候选全被黑名单/时长过滤" });
       cb.onLog("warn", "  候选全被过滤");
-      continue;
+      failed[song.raw] = { ok: false, reason: "候选全被过滤", song };
+      failedDirty = true;
+      return;
     }
 
     const best = scored[0].result;
@@ -182,20 +241,21 @@ export async function runBatch(
 
     // 4. 策略判定
     const suspect = report.confidence !== "high";
-    let toDownload: SearchResult | null = best;
+    let toDownload: SearchResult = best;
     if (suspect) {
       if (cfg.confirmPolicy === "skip") {
         cb.onRowUpdate(i, { state: "skipped" });
         cb.onLog("warn", `  候选存疑(${report.confidence}),按策略跳过: ${report.reason}`);
-        continue;
+        return;
       } else if (cfg.confirmPolicy === "confirm") {
         cb.onRowUpdate(i, { state: "pending" });
         cb.onLog("warn", `  候选存疑(${report.confidence}),转入待确认: ${report.reason}`);
         const decision = await cb.onConfirmNeeded(i, best, scored.map((s) => s.result), report.reason ?? "");
+        if (isCancelled()) return;
         if (decision.action === "skip") {
           cb.onRowUpdate(i, { state: "skipped" });
           cb.onLog("info", `  用户跳过: ${song.title}`);
-          continue;
+          return;
         }
         toDownload = decision.pick ?? best;
         cb.onRowUpdate(i, { state: "searching", reason: null });
@@ -205,16 +265,57 @@ export async function runBatch(
 
     // 5. 下载
     cb.onRowUpdate(i, { state: "downloading", match: toDownload });
-    cb.onLog("info", `  下载: ${toDownload!.title} (${toDownload!.uploader}) [${report.confidence}]`);
+    cb.onLog("info", `  下载: ${toDownload.title} (${toDownload.uploader}) [${report.confidence}]`);
     try {
-      const filepath = await downloadOne(toDownload!.id, song, cfg, downloadsDir, cb.onLog);
+      const filepath = await downloadOne(toDownload.id, song, cfg, downloadsDir, cb.onLog);
       cb.onRowUpdate(i, { state: "done", filepath });
       cb.onLog("ok", `  完成 → ${filepath}`);
+      success[song.raw] = {
+        ok: true,
+        song,
+        match: {
+          videoId: toDownload.id,
+          title: toDownload.title,
+          artists: toDownload.uploader ? [toDownload.uploader] : [],
+        },
+        download: { filepath },
+      };
+      successDirty = true;
     } catch (e) {
       cb.onRowUpdate(i, { state: "failed", failReason: `下载失败: ${e}` });
       cb.onLog("err", `  下载失败: ${e}`);
+      failed[song.raw] = { ok: false, reason: `下载失败: ${e}`, song };
+      failedDirty = true;
     }
   }
+
+  // 并发池:cfg.confirmPolicy === "confirm" 时,存疑确认会阻塞单条但不阻塞其他;
+  // 为避免多条同时弹确认层,confirm 策略下并发降为 1(串行,逐条确认)。
+  const concurrency = cfg.confirmPolicy === "confirm" ? 1 : Math.max(1, cfg.concurrentDownloads);
+  cb.onLog("info", `并发数: ${concurrency}${cfg.confirmPolicy === "confirm" ? "(确认模式串行)" : ""}`);
+
+  const indices = rows.map((_, i) => i);
+  let nextIdx = 0;
+  async function worker() {
+    while (true) {
+      if (isCancelled()) return;
+      const i = nextIdx++;
+      if (i >= indices.length) return;
+      await processOne(i);
+      // 每完成一首落盘(弹性,中断不丢)
+      if (successDirty) {
+        await saveJson(successPath, success);
+        successDirty = false;
+      }
+      if (failedDirty) {
+        await saveJson(failedPath, failed);
+        failedDirty = false;
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, indices.length) }, () => worker()));
+
+  if (isCancelled()) cb.onLog("warn", "用户停止,已完成的不丢失");
   cb.onAllDone();
 }
 
