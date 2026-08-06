@@ -279,6 +279,30 @@ export default function DownloadPage() {
               <Button variant="ghost" onClick={() => toast("断点续传:已完成项自动跳过")}>
                 ⏏️ 断点续传
               </Button>
+              {counts.failed > 0 && (
+                <Button
+                  onClick={() => {
+                    const store = useDownloadStore.getState();
+                    store.rows.forEach((r, i) => {
+                      if (r.state === "failed") {
+                        store.updateRow(i, {
+                          state: "todo",
+                          failReason: null,
+                          match: null,
+                          confidence: null,
+                          reason: null,
+                          flags: [],
+                        });
+                      }
+                    });
+                    log("info", `已重置 ${counts.failed} 个失败项为待下载`);
+                    toast(`已重置 ${counts.failed} 个失败项,可重新下载`);
+                  }}
+                  disabled={isRunning}
+                >
+                  ↻ 重试失败({counts.failed})
+                </Button>
+              )}
             </>
           )}
           <div className="flex-1" />
