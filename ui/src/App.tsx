@@ -10,6 +10,7 @@ import CatalogPage from "./pages/CatalogPage";
 import UrlsPage from "./pages/UrlsPage";
 import SettingsPage from "./pages/SettingsPage";
 import ToolsPage from "./pages/ToolsPage";
+import HelpPage from "./pages/HelpPage";
 
 type PageId =
   | "dashboard"
@@ -58,6 +59,7 @@ export default function App() {
   else if (page === "urls") content = <UrlsPage />;
   else if (page === "settings") content = <SettingsPage />;
   else if (page === "tools") content = <ToolsPage />;
+  else if (page === "help") content = <HelpPage />;
   else content = <Placeholder page={page} />;
 
   const [title, sub] = PAGE_META[page];
