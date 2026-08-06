@@ -7,6 +7,7 @@ import DownloadPage from "./pages/DownloadPage";
 import ReviewPage from "./pages/ReviewPage";
 import OrganizePage from "./pages/OrganizePage";
 import CatalogPage from "./pages/CatalogPage";
+import UrlsPage from "./pages/UrlsPage";
 
 type PageId =
   | "dashboard"
@@ -52,6 +53,7 @@ export default function App() {
   else if (page === "review") content = <ReviewPage />;
   else if (page === "organize") content = <OrganizePage />;
   else if (page === "catalog") content = <CatalogPage />;
+  else if (page === "urls") content = <UrlsPage />;
   else content = <Placeholder page={page} />;
 
   const [title, sub] = PAGE_META[page];
