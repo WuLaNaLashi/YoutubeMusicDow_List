@@ -26,12 +26,31 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "publisher": "YT_Music",
+    "copyright": "仅供个人学习使用",
+    "category": "Utility",
+    "shortDescription": "批量下载 YouTube Music 歌曲到本地",
+    "longDescription": "把歌单批量下载为本地高音质音频,保留原始流,自动嵌入元数据,并提供匹配校验、分类整理、批量改名、转码工具。",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "10.15"
+    },
+    "windows": {
+      "wix": {
+        "language": ["zh-CN", "en-US"]
+      }
+    },
+    "linux": {
+      "deb": {
+        "depends": ["ffmpeg"]
+      }
+    }
   }
 }
