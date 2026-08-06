@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YT_Music · UI 原型</title>
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f8fafc; --bg-soft2:#f1f5f9;
+    --border:#e2e8f0; --border-strong:#cbd5e1;
+    --text:#0f172a; --text-2:#475569; --text-3:#94a3b8;
+    --brand:#6366f1; --brand-soft:#eef2ff; --brand-strong:#4f46e5;
+    --ok:#16a34a; --ok-soft:#dcfce7;
+    --warn:#d97706; --warn-soft:#fef3c7;
+    --err:#dc2626; --err-soft:#fee2e2;
+    --info:#2563eb; --info-soft:#dbeafe;
+    --alias:#0891b2; --alias-soft:#cffafe;
+    --radius:8px; --shadow:0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg-soft); color:var(--text); font-size:14px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{display:flex; height:100vh; overflow:hidden}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:220px; background:var(--bg); border-right:1px solid var(--border);
+    display:flex; flex-direction:column; flex-shrink:0;
+  }
+  .brand{padding:20px 18px 16px; display:flex; align-items:center; gap:10px}
+  .brand-logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px}
+  .brand-name{font-weight:600; font-size:15px}
+  .brand-sub{font-size:11px; color:var(--text-3)}
+  .nav{flex:1; padding:8px 10px; overflow-y:auto}
+  .nav-section{font-size:11px; color:var(--text-3); padding:14px 10px 6px; text-transform:uppercase; letter-spacing:.06em}
+  .nav-item{
+    display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:7px;
+    color:var(--text-2); cursor:pointer; font-size:13.5px; margin-bottom:1px;
+    transition:all .12s;
+  }
+  .nav-item:hover{background:var(--bg-soft2); color:var(--text)}
+  .nav-item.active{background:var(--brand-soft); color:var(--brand-strong); font-weight:500}
+  .nav-item .ico{width:17px; text-align:center; font-size:15px}
+  .nav-item .badge{margin-left:auto; background:var(--err-soft); color:var(--err); font-size:11px; padding:1px 7px; border-radius:10px; font-weight:600}
+  .sidebar-foot{padding:12px 16px; border-top:1px solid var(--border); font-size:11px; color:var(--text-3)}
+  .sidebar-foot .dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--ok); margin-right:5px}
+
+  /* ---------- Main ---------- */
+  .main{flex:1; display:flex; flex-direction:column; min-width:0}
+  .topbar{
+    height:52px; background:var(--bg); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; padding:0 20px; gap:12px; flex-shrink:0;
+  }
+  .topbar h1{font-size:15px; font-weight:600}
+  .topbar .sub{color:var(--text-3); font-size:12px}
+  .topbar .spacer{flex:1}
+  .topbar .conn{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-2); padding:4px 10px; background:var(--bg-soft2); border-radius:6px}
+
+  .content{flex:1; overflow-y:auto; padding:20px 24px 80px}
+
+  /* ---------- Generic ---------- */
+  .page{display:none}
+  .page.active{display:block; animation:fade .15s}
+  @keyframes fade{from{opacity:0; transform:translateY(2px)}to{opacity:1}}
+  .row{display:flex; gap:12px; flex-wrap:wrap}
+  .row.between{align-items:center; justify-content:space-between}
+  .grow{flex:1; min-width:0}
+  .mb12{margin-bottom:12px} .mb16{margin-bottom:16px} .mb24{margin-bottom:24px}
+  .mt8{margin-top:8px} .mt16{margin-top:16px}
+  .muted{color:var(--text-3)} .small{font-size:12px}
+
+  .card{background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow)}
+  .card h3{font-size:13px; font-weight:600; margin-bottom:12px; color:var(--text)}
+  .card .desc{color:var(--text-3); font-size:12px; margin-bottom:12px}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:7px;
+    border:1px solid var(--border-strong); background:var(--bg); color:var(--text);
+    font-size:13px; cursor:pointer; transition:all .12s; font-family:inherit;
+  }
+  .btn:hover{background:var(--bg-soft2)}
+  .btn.primary{background:var(--brand); border-color:var(--brand); color:#fff}
+  .btn.primary:hover{background:var(--brand-strong)}
+  .btn.danger{color:var(--err); border-color:var(--err)}
+  .btn.danger:hover{background:var(--err-soft)}
+  .btn.ghost{border-color:transparent}
+  .btn.ghost:hover{background:var(--bg-soft2)}
+  .btn.sm{padding:4px 10px; font-size:12px}
+  .btn:disabled{opacity:.5; cursor:not-allowed}
+
+  .input, .select, textarea{
+    padding:7px 10px; border:1px solid var(--border-strong); border-radius:7px;
+    font-size:13px; font-family:inherit; background:var(--bg); color:var(--text);
+    outline:none; transition:border-color .12s; width:100%;
+  }
+  .input:focus, .select:focus, textarea:focus{border-color:var(--brand)}
+  textarea{resize:vertical; min-height:90px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:12.5px}
+  label.lbl{display:block; font-size:12px; color:var(--text-2); margin-bottom:5px; font-weight:500}
+  .field{margin-bottom:14px}
+  .field-inline{display:flex; align-items:center; gap:10px}
+
+  /* progress */
+  .progress{height:8px; background:var(--bg-soft2); border-radius:5px; overflow:hidden}
+  .progress > div{height:100%; background:linear-gradient(90deg,var(--brand),#8b5cf6); border-radius:5px; transition:width .3s}
+
+  /* table */
+  .tbl-wrap{overflow:auto; border:1px solid var(--border); border-radius:var(--radius); background:var(--bg)}
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th{
+    text-align:left; padding:9px 12px; background:var(--bg-soft); border-bottom:1px solid var(--border);
+    font-weight:600; color:var(--text-2); font-size:12px; position:sticky; top:0; white-space:nowrap;
+  }
+  td{padding:9px 12px; border-bottom:1px solid var(--bg-soft2); vertical-align:middle}
+  tr:hover td{background:var(--bg-soft)}
+  tr:last-child td{border-bottom:none}
+
+  /* tag / badge */
+  .tag{display:inline-flex; align-items:center; gap:4px; padding:2px 9px; border-radius:11px; font-size:11.5px; font-weight:500; white-space:nowrap}
+  .tag.ok{background:var(--ok-soft); color:var(--ok)}
+  .tag.warn{background:var(--warn-soft); color:var(--warn)}
+  .tag.err{background:var(--err-soft); color:var(--err)}
+  .tag.info{background:var(--info-soft); color:var(--info)}
+  .tag.alias{background:var(--alias-soft); color:var(--alias)}
+  .tag.neutral{background:var(--bg-soft2); color:var(--text-2)}
+
+  /* stat cards */
+  .stat-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; margin-bottom:16px}
+  .stat{background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:13px 15px; box-shadow:var(--shadow)}
+  .stat .num{font-size:24px; font-weight:700; line-height:1.1}
+  .stat .lbl{font-size:11.5px; color:var(--text-3); margin-top:3px}
+  .stat .ico{float:right; font-size:18px; opacity:.5}
+
+  /* grid helpers */
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+  @media(max-width:1100px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+  /* switch */
+  .switch{position:relative; width:38px; height:22px; display:inline-block}
+  .switch input{opacity:0; width:0; height:0}
+  .slider{position:absolute; inset:0; background:var(--border-strong); border-radius:22px; transition:.2s; cursor:pointer}
+  .slider:before{content:""; position:absolute; height:16px; width:16px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s}
+  .switch input:checked + .slider{background:var(--brand)}
+  .switch input:checked + .slider:before{transform:translateX(16px)}
+
+  /* range */
+  input[type=range]{accent-color:var(--brand)}
+
+  /* tab pills */
+  .pills{display:flex; gap:4px; background:var(--bg-soft2); padding:3px; border-radius:8px; width:fit-content}
+  .pill{padding:5px 13px; font-size:12.5px; border-radius:6px; cursor:pointer; color:var(--text-2)}
+  .pill.active{background:var(--bg); color:var(--text); box-shadow:var(--shadow)}
+
+  /* log drawer */
+  .logdrawer{
+    position:absolute; bottom:0; left:220px; right:0; height:180px;
+    background:#0f172a; color:#cbd5e1; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:11.5px;
+    border-top:1px solid #1e293b; transform:translateY(0); transition:transform .25s; z-index:5;
+    display:flex; flex-direction:column;
+  }
+  .logdrawer.collapsed{transform:translateY(calc(100% - 32px))}
+  .log-head{height:32px; background:#1e293b; display:flex; align-items:center; padding:0 14px; gap:8px; flex-shrink:0}
+  .log-head .t{color:#94a3b8; font-size:11.5px; flex:1}
+  .log-head .ctrl{color:#94a3b8; cursor:pointer; padding:2px 6px; border-radius:4px}
+  .log-head .ctrl:hover{background:#334155; color:#e2e8f0}
+  .log-body{flex:1; overflow-y:auto; padding:8px 14px}
+  .log-body .ln{padding:1px 0}
+  .log-body .info{color:#93c5fd}
+  .log-body .warn{color:#fcd34d}
+  .log-body .err{color:#fca5a5}
+  .log-body .ok{color:#86efac}
+
+  /* spinner */
+  .spinner{width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* toast */
+  .toast{position:fixed; bottom:200px; right:24px; background:var(--text); color:#fff; padding:10px 16px; border-radius:8px; font-size:13px; box-shadow:var(--shadow-md); opacity:0; transform:translateY(10px); transition:.2s; z-index:50}
+  .toast.show{opacity:1; transform:translateY(0)}
+
+  /* song editor table inputs */
+  td .cell-input{border:none; background:transparent; padding:3px 4px; font-size:13px; font-family:inherit; width:100%; border-radius:4px; color:var(--text)}
+  td .cell-input:focus{background:var(--brand-soft); outline:1px solid var(--brand)}
+
+  .checkbox{width:15px; height:15px; accent-color:var(--brand); cursor:pointer}
+
+  .divider{height:1px; background:var(--border); margin:16px 0}
+  .hint{font-size:11.5px; color:var(--text-3); margin-top:5px}
+
+  .keyword-list{display:flex; flex-wrap:wrap; gap:5px; padding:8px; border:1px solid var(--border-strong); border-radius:7px; min-height:42px; background:var(--bg)}
+  .chip{display:inline-flex; align-items:center; gap:5px; background:var(--bg-soft2); padding:3px 8px; border-radius:11px; font-size:12px}
+  .chip .x{cursor:pointer; color:var(--text-3); font-weight:600}
+  .chip .x:hover{color:var(--err)}
+  .chip.add{background:var(--brand-soft); color:var(--brand-strong); cursor:pointer; border:1px dashed var(--brand)}
+
+  .tag-dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px}
+
+  /* help center layout */
+  .help-layout{display:grid; grid-template-columns:210px 1fr; gap:24px; align-items:start}
+  .help-toc{position:sticky; top:0; font-size:13px}
+  .help-toc .h2{color:var(--text-3); font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:14px 0 5px; font-weight:600}
+  .help-toc a{display:block; padding:5px 10px; border-radius:6px; color:var(--text-2); text-decoration:none; cursor:pointer}
+  .help-toc a:hover{background:var(--bg-soft2); color:var(--text)}
+  .help-toc a.active{background:var(--brand-soft); color:var(--brand-strong); font-weight:500}
+  .help-body h2{font-size:17px; font-weight:600; margin:26px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--border); scroll-margin-top:80px}
+  .help-body h2:first-child{margin-top:0}
+  .help-body h3{font-size:14px; font-weight:600; margin:16px 0 8px}
+  .help-body p{color:var(--text-2); margin-bottom:10px; line-height:1.65}
+  .help-body ul, .help-body ol{margin:0 0 12px 20px; color:var(--text-2); line-height:1.7}
+  .help-body li{margin-bottom:4px}
+  .help-body code{background:var(--bg-soft2); padding:1px 6px; border-radius:4px; font-size:12px; font-family:"SF Mono",Menlo,Consolas,monospace}
+  .help-body pre{background:#0f172a; color:#e2e8f0; padding:12px 14px; border-radius:8px; overflow-x:auto; margin:10px 0; font-size:12px; line-height:1.6}
+  .help-body pre code{background:none; padding:0; color:inherit}
+  .callout{padding:12px 14px; border-radius:8px; margin:12px 0; font-size:13px; line-height:1.6}
+  .callout.info{background:var(--info-soft); border-left:3px solid var(--info)}
+  .callout.warn{background:var(--warn-soft); border-left:3px solid var(--warn)}
+  .callout.danger{background:var(--err-soft); border-left:3px solid var(--err)}
+  .callout.ok{background:var(--ok-soft); border-left:3px solid var(--ok)}
+  .callout b{color:var(--text)}
+  .step{display:flex; gap:12px; margin-bottom:14px}
+  .step .n{flex-shrink:0; width:26px; height:26px; border-radius:50%; background:var(--brand); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600}
+  .faq-item{border:1px solid var(--border); border-radius:8px; margin-bottom:8px; overflow:hidden}
+  .faq-q{padding:12px 14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-weight:500; font-size:13.5px; background:var(--bg)}
+  .faq-q:hover{background:var(--bg-soft)}
+  .faq-q .arrow{transition:transform .2s; color:var(--text-3)}
+  .faq-item.open .faq-q .arrow{transform:rotate(90deg)}
+  .faq-a{display:none; padding:0 14px 12px; color:var(--text-2); font-size:13px; line-height:1.65}
+  .faq-item.open .faq-a{display:block}
+  .faq-a .triple{display:grid; grid-template-columns:80px 1fr; gap:4px 12px; margin-top:6px}
+  .faq-a .triple .k{color:var(--text-3); font-size:12px}
+  .search-box{position:relative; margin-bottom:20px}
+  .search-box input{padding-left:34px}
+  .search-box .ico{position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--text-3)}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">YT</div>
+      <div>
+        <div class="brand-name">YT_Music</div>
+        <div class="brand-sub">批量下载工具箱</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">工作流</div>
+      <div class="nav-item active" data-page="dashboard"><span class="ico">⬇️</span>下载</div>
+      <div class="nav-item" data-page="review"><span class="ico">🔍</span>匹配校验<span class="badge">6</span></div>
+      <div class="nav-item" data-page="organize"><span class="ico">🗂️</span>文件整理</div>
+      <div class="nav-item" data-page="catalog"><span class="ico">📋</span>来源识别</div>
+      <div class="nav-section">其他</div>
+      <div class="nav-item" data-page="urls"><span class="ico">🔗</span>URL 直下</div>
+      <div class="nav-item" data-page="tools"><span class="ico">🛠️</span>转码 & 改名</div>
+      <div class="nav-item" data-page="settings"><span class="ico">⚙️</span>设置</div>
+      <div class="nav-item" data-page="help"><span class="ico">❓</span>帮助中心</div>
+    </nav>
+    <div class="sidebar-foot">
+      <span class="dot"></span>后端已连接<br>
+      <span style="opacity:.7">localhost:8765 · v0.1.0</span>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main" style="position:relative">
+    <div class="topbar">
+      <div>
+        <h1 id="page-title">下载</h1>
+        <div class="sub" id="page-sub">从歌单批量下载 YouTube Music 音频</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn ghost" onclick="goPage('help')" title="帮助">❓</button>
+      <div class="conn"><span style="color:var(--ok)">●</span> ffmpeg 7.x</div>
+      <div class="conn"><span style="color:var(--ok)">●</span> deno</div>
+      <div class="conn"><span style="color:var(--ok)">●</span> cookies 已加载</div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== DASHBOARD ===== -->
+      <section class="page active" id="dashboard">
+        <div class="row between mb16">
+          <div class="row">
+            <button class="btn" onclick="toast('导入 songs_list.txt')">📄 导入歌单</button>
+            <button class="btn" onclick="toast('导出当前歌单')">💾 导出</button>
+          </div>
+          <div class="row">
+            <label class="lbl" style="margin:0">并发数</label>
+            <input type="range" min="1" max="10" value="3" style="width:140px" oninput="this.nextElementSibling.textContent=this.value">
+            <span class="small muted" style="width:18px">3</span>
+          </div>
+        </div>
+
+        <div class="card mb16">
+          <div class="row between mb12">
+            <h3>下载目标与策略</h3>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label class="lbl">📁 下载到目录</label>
+              <div class="field-inline">
+                <input class="input" id="dl-dir" value="/Users/hxg/Music/YT_Downloads" readonly>
+                <button class="btn" onclick="toast('打开目录选择器')">浏览…</button>
+                <button class="btn ghost" onclick="toast('恢复默认: 项目根/downloads')" title="恢复默认">↺</button>
+              </div>
+              <div class="hint">音频文件落到这里;子目录 <code>ok/</code> <code>mismatch/</code> 等在整理后生成。默认:项目根 <code>downloads/</code></div>
+            </div>
+            <div>
+              <label class="lbl">⚠️ 质量存疑项处理</label>
+              <select class="select" id="dl-confirm-policy">
+                <option value="confirm" selected>存疑先停下,逐条让我确认(推荐)</option>
+                <option value="skip">存疑直接跳过不下载</option>
+                <option value="auto">全部自动下载(事后去校验页 review)</option>
+              </select>
+              <div class="hint">"存疑"=最匹配候选疑似翻唱/MV/Live/medley 或艺人对不上。详见下方候选表。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat"><div class="ico">🎵</div><div class="num" id="st-total">18</div><div class="lbl">歌单总数</div></div>
+          <div class="stat"><div class="ico">✅</div><div class="num" style="color:var(--ok)" id="st-done">11</div><div class="lbl">已下载</div></div>
+          <div class="stat"><div class="ico">❌</div><div class="num" style="color:var(--err)" id="st-fail">0</div><div class="lbl">失败</div></div>
+          <div class="stat"><div class="ico">⏳</div><div class="num" style="color:var(--warn)" id="st-todo">7</div><div class="lbl">待下载</div></div>
+          <div class="stat"><div class="ico">🟠</div><div class="num" style="color:var(--warn)" id="st-pending">0</div><div class="lbl">待确认</div></div>
+        </div>
+
+        <div class="card mb16">
+          <div class="row between mb12">
+            <h3>批量下载控制</h3>
+            <span class="tag neutral" id="dl-status">空闲</span>
+          </div>
+          <div class="progress mb12"><div id="dl-bar" style="width:0%"></div></div>
+          <div class="row between small muted mb16">
+            <span id="dl-prog-text">就绪</span>
+            <span id="dl-eta"></span>
+          </div>
+          <div class="row">
+            <button class="btn primary" id="btn-all" onclick="startDownload('all')">⬇️ 全量下载</button>
+            <button class="btn" onclick="startDownload('test')">🎲 测试 5 首</button>
+            <button class="btn" onclick="toast('已开启断点续传(--resume)')">⏏️ 断点续传</button>
+            <div class="grow"></div>
+            <button class="btn danger" id="btn-stop" onclick="stopDownload()" disabled>⏹ 停止</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row between mb12">
+            <h3>当前任务 / 歌单明细</h3>
+            <div class="pills" id="dl-filter">
+              <div class="pill active" data-f="all">全部 18</div>
+              <div class="pill" data-f="todo">待下载</div>
+              <div class="pill" data-f="done">已完成</div>
+              <div class="pill" data-f="pending">🟠 待确认 0</div>
+              <div class="pill" data-f="fail">失败</div>
+            </div>
+          </div>
+          <div class="tbl-wrap" style="max-height:420px">
+          <table>
+            <thead><tr><th>状态</th><th>标题</th><th>艺人</th><th>实际匹配 / 质量标注</th><th>置信度</th><th>操作</th></tr></thead>
+            <tbody id="dl-tbody"></tbody>
+          </table>
+          </div>
+          <div class="hint mt8">置信度 = 综合标题相似度 + 艺人匹配 + 类型(song/video) + 黑名单/降权词打分。<span class="tag ok" style="display:inline">高</span> 自动下载 · <span class="tag warn" style="display:inline">中</span> 按策略处理 · <span class="tag err" style="display:inline">低</span> 默认进待确认。</div>
+        </div>
+      </section>
+
+      <!-- ===== 候选确认弹层 ===== -->
+      <div id="confirm-overlay" style="position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:60">
+        <div class="card" style="width:720px;max-width:92vw;max-height:86vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.3)">
+          <div class="row between mb12">
+            <h3 style="margin:0">🟠 这首歌的最优候选质量存疑,请确认</h3>
+            <button class="btn ghost sm" onclick="closeConfirm()">✕</button>
+          </div>
+          <div class="callout warn" id="confirm-reason"></div>
+          <div class="small muted mb12">请求下载:<b id="confirm-req"></b></div>
+          <h3 style="font-size:13px">YT 返回的全部候选(已按打分排序)</h3>
+          <div class="tbl-wrap mb16">
+            <table>
+              <thead><tr><th></th><th>标题</th><th>频道/艺人</th><th>时长</th><th>类型</th><th>标注</th><th>分数</th></tr></thead>
+              <tbody id="confirm-cands"></tbody>
+            </table>
+          </div>
+          <div class="row">
+            <button class="btn primary" onclick="confirmPick(true)">✓ 用第 1 个(最优)下载</button>
+            <button class="btn" onclick="confirmPick('pick')">🎯 我选别的候选</button>
+            <button class="btn" onclick="confirmPick(false)">⏭ 跳过这首</button>
+          </div>
+          <div class="hint mt8">提示:点 <b>🎯 我选别的候选</b> 可在上表里单选某条。</div>
+        </div>
+      </div>
+
+      <!-- ===== REVIEW ===== -->
+      <section class="page" id="review">
+        <div class="row between mb16">
+          <div>
+            <h3 style="font-size:15px; margin-bottom:3px">匹配质量校验</h3>
+            <div class="muted small">对比"请求"与"实际下载"内容,基于 success.json + failed.json</div>
+          </div>
+          <div class="row">
+            <label class="field-inline"><input type="checkbox" class="checkbox"> 读磁盘元数据(慢但更准)</label>
+            <button class="btn primary" onclick="toast('校验完成,见下方分类')">▶️ 运行校验</button>
+            <button class="btn" onclick="toast('已导出 logs/match_report.md')">📄 导出报告</button>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat"><div class="num" style="color:var(--ok)">7</div><div class="lbl">✅ ok</div></div>
+          <div class="stat"><div class="num" style="color:var(--alias)">3</div><div class="lbl">🔵 warn_alias_likely</div></div>
+          <div class="stat"><div class="num" style="color:var(--warn)">0</div><div class="lbl">⚠️ warn_title_diff</div></div>
+          <div class="stat"><div class="num" style="color:var(--warn)">1</div><div class="lbl">⚠️ warn_partial_artist</div></div>
+          <div class="stat"><div class="num" style="color:var(--err)">1</div><div class="lbl">❌ mismatch</div></div>
+          <div class="stat"><div class="num" style="color:var(--text-3)">0</div><div class="lbl">💥 failed</div></div>
+        </div>
+
+        <div class="card">
+          <div class="row between mb12">
+            <h3>明细 · 共 11 条</h3>
+            <div class="row">
+              <select class="select" style="width:auto"><option>全部分类</option><option>❌ mismatch</option><option>🔵 warn_alias_likely</option><option>⚠️ warn_title_diff</option><option>✅ ok</option></select>
+              <input class="input" placeholder="搜索标题/艺人…" style="width:200px">
+            </div>
+          </div>
+          <div class="tbl-wrap" style="max-height:460px">
+          <table>
+            <thead><tr><th>分类</th><th>请求(标题-艺人)</th><th>实际(标题-艺人)</th><th>相似度</th><th>videoId</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="tag err">❌ mismatch</span></td>
+                <td><b>天才与白痴</b><br><span class="muted small">古巨基</span></td>
+                <td><b>金曲连环炮</b><br><span class="muted small">古巨基</span></td>
+                <td><span class="tag warn">0.31</span></td>
+                <td><span class="small muted" style="font-family:monospace">dQw4w9WgXcQ</span></td>
+                <td><button class="btn sm" onclick="toast('打开浏览器: videoId')">↗ YT</button> <button class="btn sm primary" onclick="toast('已删除 success 条目,可重下')">↻ 重下</button></td>
+              </tr>
+              <tr>
+                <td><span class="tag alias">🔵 warn_alias_likely</span></td>
+                <td><b>Loser</b><br><span class="muted small">米津玄师</span></td>
+                <td><b>Loser</b><br><span class="muted small">Kenshi Yonezu</span></td>
+                <td><span class="tag ok">1.00</span></td>
+                <td><span class="small muted" style="font-family:monospace">8GpAI45DkgU</span></td>
+                <td><button class="btn sm" onclick="toast('打开浏览器')">↗ YT</button> <button class="btn sm" onclick="toast('打开所在目录')">📁</button></td>
+              </tr>
+              <tr>
+                <td><span class="tag alias">🔵 warn_alias_likely</span></td>
+                <td><b>金达莱花</b><br><span class="muted small">Maya</span></td>
+                <td><b>Azalea (진달래꽃)</b><br><span class="muted small">MAYA</span></td>
+                <td><span class="tag ok">0.95</span></td>
+                <td><span class="small muted" style="font-family:monospace">NEu1mZ</span></td>
+                <td><button class="btn sm">↗ YT</button> <button class="btn sm">📁</button></td>
+              </tr>
+              <tr>
+                <td><span class="tag warn">⚠️ warn_partial_artist</span></td>
+                <td><b>画心</b><br><span class="muted small">杨坤 _ A-Lin</span></td>
+                <td><b>画心</b><br><span class="muted small">张靓颖</span></td>
+                <td><span class="tag ok">1.00</span></td>
+                <td><span class="small muted" style="font-family:monospace">aQkRmZ</span></td>
+                <td><button class="btn sm">↗ YT</button> <button class="btn sm primary">↻ 重下</button></td>
+              </tr>
+              <tr>
+                <td><span class="tag ok">✅ ok</span></td>
+                <td><b>Gee</b><br><span class="muted small">少女时代</span></td>
+                <td><b>Gee</b><br><span class="muted small">소녀시대</span></td>
+                <td><span class="tag ok">1.00</span></td>
+                <td><span class="small muted" style="font-family:monospace">U7mPqyc</span></td>
+                <td><button class="btn sm">↗ YT</button> <button class="btn sm">📁</button></td>
+              </tr>
+              <tr>
+                <td><span class="tag ok">✅ ok</span></td>
+                <td><b>Fantastic Baby</b><br><span class="muted small">BIGBANG</span></td>
+                <td><b>Fantastic Baby</b><br><span class="muted small">BIGBANG</span></td>
+                <td><span class="tag ok">1.00</span></td>
+                <td><span class="small muted" style="font-family:monospace">AAbOaF</span></td>
+                <td><button class="btn sm">↗ YT</button> <button class="btn sm">📁</button></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ORGANIZE ===== -->
+      <section class="page" id="organize">
+        <div class="grid-2 mb16">
+          <div class="card">
+            <h3>🗂️ 按分类挪文件</h3>
+            <div class="desc">把 downloads/ 里的文件按 check_matches 分类挪进子目录(幂等)。来源:organize_by_check.py</div>
+            <div class="field-inline mb12">
+              <label class="field-inline"><input type="radio" name="omode" checked class="checkbox"> 移动</label>
+              <label class="field-inline"><input type="radio" name="omode" class="checkbox"> 复制</label>
+            </div>
+            <div class="tbl-wrap mb12">
+              <table>
+                <thead><tr><th>目标子目录</th><th>文件数</th><th></th></tr></thead>
+                <tbody>
+                  <tr><td><span class="tag ok">✅ ok/</span></td><td>7</td><td class="muted small">已就位</td></tr>
+                  <tr><td><span class="tag alias">🔵 warn_alias_likely/</span></td><td>3</td><td class="muted small">待移动</td></tr>
+                  <tr><td><span class="tag warn">⚠️ warn_partial_artist/</span></td><td>1</td><td class="muted small">待移动</td></tr>
+                  <tr><td><span class="tag err">❌ mismatch/</span></td><td>1</td><td class="muted small">待移动</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="row">
+              <button class="btn" onclick="toast('dry-run 预览完成')">👁️ 预览(dry-run)</button>
+              <button class="btn primary" onclick="toast('已移动 4 个文件')">✓ 执行(--apply)</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>✏️ 按嵌入元数据改名</h3>
+            <div class="desc">把文件名改成「{真实艺人} - {真实标题}.ext」。来源:rename_by_metadata.py</div>
+            <div class="field">
+              <label class="lbl">改名的分类(多选)</label>
+              <div class="keyword-list">
+                <span class="chip" style="background:var(--brand-soft);color:var(--brand-strong)">mismatch ×</span>
+                <span class="chip" style="background:var(--brand-soft);color:var(--brand-strong)">warn_title_diff ×</span>
+                <span class="chip" style="background:var(--brand-soft);color:var(--brand-strong)">warn_alias_likely ×</span>
+                <span class="chip add">+ 添加分类</span>
+              </div>
+            </div>
+            <div class="tbl-wrap mb12">
+              <table>
+                <thead><tr><th>原文件名</th><th>新文件名</th></tr></thead>
+                <tbody>
+                  <tr><td class="small">古巨基 - 天才与白痴.opus</td><td class="small">古巨基 - 金曲连环炮.opus</td></tr>
+                  <tr><td class="small">杨坤 _ A-Lin - 画心.opus</td><td class="small">张靓颖 - 画心.opus</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="row">
+              <button class="btn" onclick="toast('dry-run 预览完成')">👁️ 预览</button>
+              <button class="btn primary" onclick="toast('已改名 2 个文件')">✓ 执行</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>📁 downloads/ 目录浏览</h3>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>名称</th><th>类型</th><th>大小</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr><td>📂 ok</td><td class="muted">目录 · 7 项</td><td>—</td><td><button class="btn sm">打开</button></td></tr>
+                <tr><td>📂 mismatch</td><td class="muted">目录 · 1 项</td><td>—</td><td><button class="btn sm">打开</button></td></tr>
+                <tr><td>🎵 BIGBANG - Fantastic Baby.opus</td><td class="muted">opus</td><td class="muted">4.2 MB</td><td><button class="btn sm">重命名</button> <button class="btn sm danger">删</button></td></tr>
+                <tr><td>🎵 少女时代 - Gee.opus</td><td class="muted">opus</td><td class="muted">3.8 MB</td><td><button class="btn sm">重命名</button> <button class="btn sm danger">删</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== CATALOG ===== -->
+      <section class="page" id="catalog">
+        <div class="row between mb16">
+          <div class="muted small">通过「Provided to YouTube by…」签名区分正版编录 vs 普通视频 fallback</div>
+          <div class="row">
+            <label class="field-inline"><input type="checkbox" class="checkbox"> 含编录但缺 album 的</label>
+            <button class="btn primary" onclick="toast('扫描完成')">▶️ 扫描 downloads/</button>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat"><div class="num" style="color:var(--ok)">10</div><div class="lbl">✅ catalog 正版编录</div></div>
+          <div class="stat"><div class="num" style="color:var(--warn)">0</div><div class="lbl">🟡 catalog_no_album</div></div>
+          <div class="stat"><div class="num" style="color:var(--err)">1</div><div class="lbl">❌ non_catalog 普通视频</div></div>
+        </div>
+        <div class="card">
+          <h3>❌ 非编录明细(优先 review)</h3>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>文件</th><th>标题 / 艺人</th><th>videoId</th><th>说明</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="small" style="font-family:monospace">古巨基 - 金曲连环炮.opus</td>
+                  <td>金曲连环炮 / 古巨基</td>
+                  <td class="small muted" style="font-family:monospace">dQw4w9WgXcQ</td>
+                  <td class="small muted">用户上传 medley,无 Provided to 签名</td>
+                  <td><button class="btn sm">↗ YT</button> <button class="btn sm primary">↻ 重下</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== URLS ===== -->
+      <section class="page" id="urls">
+        <div class="grid-2">
+          <div class="card">
+            <h3>🔗 URL 列表</h3>
+            <div class="desc">每行一个 YouTube URL,跳过搜索直接下载</div>
+            <textarea placeholder="https://music.youtube.com/watch?v=...
+https://www.youtube.com/watch?v=...
+https://youtu.be/..."></textarea>
+            <div class="row mt8">
+              <button class="btn" onclick="toast('从文件导入')">📄 从文件导入</button>
+              <button class="btn" onclick="toast('已去重')">↕ 去重</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>下载状态</h3>
+            <div class="progress mb12"><div style="width:0%"></div></div>
+            <div class="muted small mb16">0 / 0 完成</div>
+            <div class="row">
+              <button class="btn primary" onclick="toast('开始下载')">⬇️ 开始下载</button>
+              <button class="btn">⏏️ 断点续传</button>
+            </div>
+            <div class="divider"></div>
+            <div class="muted small">已下载历史(url_success.json):</div>
+            <div class="mt8" style="font-family:monospace;font-size:12px;color:var(--text-2)">
+              <div>✓ https://youtu.be/abc123 → BIGBANG - Lies.opus</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== TOOLS ===== -->
+      <section class="page" id="tools">
+        <div class="grid-2 mb16">
+          <div class="card">
+            <h3>🎵 opus → mp3 转码</h3>
+            <div class="desc">320 kbps CBR,保留封面与标签。输出进 {dir}/mp3/。来源:opus2mp3.py</div>
+            <div class="field">
+              <label class="lbl">目录</label>
+              <div class="field-inline">
+                <input class="input" value="downloads" readonly>
+                <button class="btn" onclick="toast('选择目录')">浏览…</button>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="field">
+                <label class="lbl">码率</label>
+                <select class="select"><option>320k (CBR, 推荐)</option><option>256k</option><option>192k</option><option>v0 (VBR)</option></select>
+              </div>
+              <div class="field">
+                <label class="lbl">并行数</label>
+                <input type="number" class="input" value="4" min="1" max="16">
+              </div>
+            </div>
+            <div class="field-inline mb12">
+              <label class="field-inline"><input type="checkbox" class="checkbox" checked> 递归子目录</label>
+              <label class="field-inline"><input type="checkbox" class="checkbox"> 转码后删源</label>
+            </div>
+            <div class="row">
+              <button class="btn" onclick="toast('dry-run: 将转码 11 个文件')">👁️ 预览</button>
+              <button class="btn primary" onclick="toast('转码中… 0/11')">✓ 执行(--apply)</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>🔀 随机播放改名(红米音箱)</h3>
+            <div class="desc">给文件名加随机前缀实现"伪随机"播放。来源:shuffle_rename.py</div>
+            <div class="field">
+              <label class="lbl">目录</label>
+              <div class="field-inline">
+                <input class="input" value="downloads" readonly>
+                <button class="btn">浏览…</button>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="field">
+                <label class="lbl">前缀类型</label>
+                <select class="select"><option>纯数字 (number)</option><option>纯字母 (letter)</option><option selected>混合 (mixed)</option></select>
+              </div>
+              <div class="field">
+                <label class="lbl">前缀长度</label>
+                <input type="number" class="input" value="4" min="1" max="10">
+              </div>
+            </div>
+            <div class="field-inline mb12">
+              <label class="field-inline"><input type="checkbox" class="checkbox" checked> 递归</label>
+            </div>
+            <div class="row">
+              <button class="btn" onclick="toast('预览:a3b7_起风了.opus …')">👁️ 预览</button>
+              <button class="btn primary" onclick="toast('已加前缀')">✓ 加前缀</button>
+              <button class="btn danger" onclick="toast('已移除前缀')">↩ 还原(--restore)</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>查找重复</h3>
+          <div class="desc">网易 163 与 YT 跨源去重。来源:find_duplicates.py</div>
+          <button class="btn primary" onclick="toast('扫描完成,无重复')">🔍 扫描重复</button>
+        </div>
+      </section>
+
+      <!-- ===== SETTINGS ===== -->
+      <section class="page" id="settings">
+        <div class="pills mb16">
+          <div class="pill active" onclick="settingsTab(this,'cookies')">🍪 Cookies</div>
+          <div class="pill" onclick="settingsTab(this,'network')">🌐 网络</div>
+          <div class="pill" onclick="settingsTab(this,'download')">⬇️ 下载 & 过滤</div>
+          <div class="pill" onclick="settingsTab(this,'paths')">📁 路径</div>
+          <div class="pill" onclick="settingsTab(this,'env')">✅ 环境自检</div>
+        </div>
+
+        <!-- Cookies -->
+        <div class="stab" id="stab-cookies">
+          <div class="card mb16">
+            <div class="row between mb12">
+              <h3>🍪 Cookies 管理</h3>
+              <span class="tag ok" id="ck-status">● 已加载 · 42 条</span>
+            </div>
+            <div class="desc">YT Music 可能需要认证。三种来源,优先级:手动文件 > 浏览器提取 > 不使用</div>
+
+            <div class="field">
+              <label class="lbl">来源</label>
+              <div class="pills">
+                <div class="pill active" onclick="ckMode(this,'file')">📄 cookies.txt 文件</div>
+                <div class="pill" onclick="ckMode(this,'browser')">🌐 从浏览器提取</div>
+                <div class="pill" onclick="ckMode(this,'none')">🚫 不使用</div>
+              </div>
+            </div>
+
+            <div id="ck-file" class="ck-pane">
+              <div class="field">
+                <label class="lbl">cookies.txt 路径</label>
+                <div class="field-inline">
+                  <input class="input" value="/Users/hxg/.../YoutubeMusicDow_List/cookies.txt" readonly>
+                  <button class="btn">浏览…</button>
+                </div>
+                <div class="hint">Netscape 格式 · 修改时间:2026-08-05 22:13 · 42 条</div>
+              </div>
+              <button class="btn" onclick="toast('拖拽上传 cookies.txt')">⬆️ 上传新文件</button>
+            </div>
+
+            <div id="ck-browser" class="ck-pane" style="display:none">
+              <div class="grid-2">
+                <div class="field">
+                  <label class="lbl">浏览器</label>
+                  <select class="select"><option>Chrome</option><option>Firefox</option><option>Edge</option><option>Brave</option><option>Chromium</option></select>
+                </div>
+                <div class="field">
+                  <label class="lbl">域名过滤</label>
+                  <input class="input" value="youtube.com">
+                </div>
+              </div>
+              <button class="btn primary" onclick="toast('已导出 42 条 → cookies.txt')">📥 一键导出到 cookies.txt</button>
+              <div class="hint mt8">⚠️ Linux 下 GNOME Keyring 可能报错,推荐用文件方式</div>
+            </div>
+
+            <div id="ck-none" class="ck-pane" style="display:none">
+              <div class="warn" style="background:var(--warn-soft);color:var(--warn);padding:10px 14px;border-radius:7px;font-size:13px">
+                ⚠️ 不使用 cookies,YouTube Music 可能要求认证导致下载失败。免费账号上限 opus ~160kbps。
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="row">
+              <button class="btn primary" onclick="ckTest()">🧪 测试有效性</button>
+              <span class="muted small" id="ck-test-result">未测试</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Network -->
+        <div class="stab" id="stab-network" style="display:none">
+          <div class="card">
+            <h3>🌐 网络与代理</h3>
+            <div class="field">
+              <label class="lbl">代理(留空=直连)</label>
+              <input class="input" placeholder="http://127.0.0.1:7890  或  socks5://127.0.0.1:1080">
+              <div class="hint">境内必需。yt-dlp 与 ytmusicapi 都会使用此代理。</div>
+            </div>
+            <div class="row">
+              <button class="btn primary" onclick="netTest()">🧪 测试连通性</button>
+              <span class="muted small" id="net-test-result">未测试</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Download -->
+        <div class="stab" id="stab-download" style="display:none">
+          <div class="grid-2 mb16">
+            <div class="card">
+              <h3>下载策略</h3>
+              <div class="field">
+                <label class="lbl">格式偏好</label>
+                <select class="select"><option>opus 优先 (webm, ~160kbps, 推荐)</option><option>m4a 优先 (AAC, 老设备友好)</option><option>bestaudio (自动)</option></select>
+              </div>
+              <div class="field-inline mb12">
+                <label class="field-inline grow"><span class="switch"><input type="checkbox" checked><span class="slider"></span></span>嵌入封面</label>
+                <label class="field-inline grow"><span class="switch"><input type="checkbox" checked><span class="slider"></span></span>嵌入元数据</label>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label class="lbl">重试次数</label>
+                  <input type="number" class="input" value="3" min="0" max="10">
+                </div>
+                <div class="field">
+                  <label class="lbl">退避序列(秒)</label>
+                  <input class="input" value="2, 8, 32">
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label class="lbl">最小时长(秒)</label>
+                  <input type="number" class="input" value="30">
+                </div>
+                <div class="field">
+                  <label class="lbl">最大时长(秒)</label>
+                  <input type="number" class="input" value="1200">
+                </div>
+              </div>
+              <div class="field">
+                <label class="lbl">搜索候选数</label>
+                <input type="number" class="input" value="5" min="1" max="20">
+              </div>
+            </div>
+            <div class="card">
+              <h3>过滤词</h3>
+              <div class="desc">命中即跳过 / 降权。来自 config.py</div>
+              <div class="field">
+                <label class="lbl">标题黑名单 SKIP_KEYWORDS(命中即跳过)</label>
+                <div class="keyword-list" id="kw-skip">
+                  <span class="chip">karaoke<span class="x">×</span></span>
+                  <span class="chip">伴奏<span class="x">×</span></span>
+                  <span class="chip">cover by<span class="x">×</span></span>
+                  <span class="chip">翻唱<span class="x">×</span></span>
+                  <span class="chip">piano cover<span class="x">×</span></span>
+                  <span class="chip">纯音乐<span class="x">×</span></span>
+                  <span class="chip">instrumental<span class="x">×</span></span>
+                  <span class="chip">nightcore<span class="x">×</span></span>
+                  <span class="chip">演唱会<span class="x">×</span></span>
+                  <span class="chip add">+ 添加</span>
+                </div>
+              </div>
+              <div class="field">
+                <label class="lbl">艺人黑名单 SKIP_ARTIST_KEYWORDS</label>
+                <div class="keyword-list">
+                  <span class="chip">纯音乐<span class="x">×</span></span>
+                  <span class="chip">karaoke<span class="x">×</span></span>
+                  <span class="chip">music for u<span class="x">×</span></span>
+                  <span class="chip add">+ 添加</span>
+                </div>
+              </div>
+              <div class="field">
+                <label class="lbl">降权词 DEPRIORITIZE_KEYWORDS(仍可选,扣 15 分)</label>
+                <div class="keyword-list">
+                  <span class="chip">live<span class="x">×</span></span>
+                  <span class="chip">acoustic<span class="x">×</span></span>
+                  <span class="chip">remix<span class="x">×</span></span>
+                  <span class="chip">现场<span class="x">×</span></span>
+                  <span class="chip add">+ 添加</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paths -->
+        <div class="stab" id="stab-paths" style="display:none">
+          <div class="card">
+            <h3>📁 路径(只读)</h3>
+            <div class="desc">由 config.py 决定,UI 只读展示</div>
+            <table>
+              <tbody>
+                <tr><td class="small muted" style="width:130px">项目根</td><td style="font-family:monospace;font-size:12px">/Users/hxg/.../YoutubeMusicDow_List</td><td><button class="btn sm">打开</button></td></tr>
+                <tr><td class="small muted">downloads</td><td style="font-family:monospace;font-size:12px">…/downloads</td><td><button class="btn sm">打开</button></td></tr>
+                <tr><td class="small muted">logs</td><td style="font-family:monospace;font-size:12px">…/logs</td><td><button class="btn sm">打开</button></td></tr>
+                <tr><td class="small muted">songs_list</td><td style="font-family:monospace;font-size:12px">…/songs_list.txt</td><td><button class="btn sm">打开</button></td></tr>
+                <tr><td class="small muted">success.json</td><td style="font-family:monospace;font-size:12px">…/logs/success.json</td><td><button class="btn sm">打开</button></td></tr>
+              </tbody>
+            </table>
+            <div class="divider"></div>
+            <div class="muted small mb12">配置持久化:改动会写入 <code>config.user.json</code>(覆盖 config.py 默认值,不影响源码)</div>
+            <div class="row">
+              <button class="btn primary" onclick="toast('已保存到 config.user.json')">💾 保存设置</button>
+              <button class="btn danger" onclick="toast('已恢复默认')">↩ 重置默认</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Env -->
+        <div class="stab" id="stab-env" style="display:none">
+          <div class="card">
+            <h3>✅ 环境自检</h3>
+            <table>
+              <tbody>
+                <tr><td>Python</td><td style="font-family:monospace">3.11.5</td><td><span class="tag ok">✓ ≥ 3.10</span></td></tr>
+                <tr><td>ffmpeg</td><td style="font-family:monospace">7.1</td><td><span class="tag ok">✓ 在 PATH</span></td></tr>
+                <tr><td>deno</td><td style="font-family:monospace">2.1</td><td><span class="tag ok">✓ 在 PATH</span></td></tr>
+                <tr><td>yt-dlp</td><td style="font-family:monospace">2026.3.17</td><td><span class="tag ok">✓</span></td></tr>
+                <tr><td>ytmusicapi</td><td style="font-family:monospace">1.12.0</td><td><span class="tag ok">✓</span></td></tr>
+                <tr><td>mutagen</td><td style="font-family:monospace">1.47.0</td><td><span class="tag ok">✓</span></td></tr>
+                <tr><td>opencc</td><td style="font-family:monospace">0.1.7</td><td><span class="tag ok">✓</span></td></tr>
+                <tr><td>browser-cookie3</td><td style="font-family:monospace">未安装</td><td><span class="tag warn">⚠ 可选(浏览器提 cookies 用)</span></td></tr>
+              </tbody>
+            </table>
+            <div class="mt16"><button class="btn primary" onclick="toast('重新检测')">↻ 重新检测</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== HELP CENTER ===== -->
+      <section class="page" id="help">
+        <div class="search-box">
+          <span class="ico">🔍</span>
+          <input class="input" id="help-search" placeholder="搜索使用说明或报错信息(如:format not available / cookies / mp3)…" oninput="filterHelp(this.value)">
+        </div>
+        <div class="help-layout">
+          <nav class="help-toc" id="help-toc">
+            <div class="h2">入门</div>
+            <a class="active" onclick="scrollHelp(this,'h-quick')">⚡ 快速上手(4 步)</a>
+            <a onclick="scrollHelp(this,'h-first')">第一次使用</a>
+            <div class="h2">功能说明</div>
+            <a onclick="scrollHelp(this,'h-download')">⬇️ 下载</a>
+            <a onclick="scrollHelp(this,'h-review')">🔍 匹配校验</a>
+            <a onclick="scrollHelp(this,'h-organize')">🗂️ 文件整理</a>
+            <a onclick="scrollHelp(this,'h-tools')">🛠️ 转码 & 改名</a>
+            <a onclick="scrollHelp(this,'h-settings')">⚙️ 设置 / Cookies</a>
+            <div class="h2">原理与限制</div>
+            <a onclick="scrollHelp(this,'h-classes')">匹配分类体系</a>
+            <a onclick="scrollHelp(this,'h-limits')">已知限制</a>
+            <div class="h2">排错</div>
+            <a onclick="scrollHelp(this,'h-faq')">常见问题 FAQ</a>
+            <a onclick="scrollHelp(this,'h-diagnose)">故障排查向导</a>
+            <a onclick="scrollHelp(this,'h-export)">📦 导出诊断信息</a>
+          </nav>
+
+          <div class="help-body">
+            <h2 id="h-quick">⚡ 快速上手(4 步)</h2>
+            <div class="callout info">从未用过?跟着这 4 步,5 分钟下到第一首歌。</div>
+            <div class="step"><div class="n">1</div><div>
+              <b>配 Cookies + 代理</b> — 进 <code>设置 → Cookies</code>。境内用户必须先填代理(<code>设置 → 网络</code>)。
+              点"测试有效性"确认能连。详见 <a onclick="scrollHelp(this,'h-faq')" style="color:var(--brand)">FAQ:中国大陆能用吗</a>。
+            </div></div>
+            <div class="step"><div class="n">2</div><div>
+              <b>导入歌单</b> — 进 <code>下载</code> 页,点"导入歌单"选 <code>songs_list.txt</code>,或在表格里直接编辑。
+              格式:每行 <code>歌名-艺人</code>,多艺人用 <code>&nbsp;_&nbsp;</code> 分隔。
+            </div></div>
+            <div class="step"><div class="n">3</div><div>
+              <b>测试 5 首</b> — 点"🎲 测试 5 首"验证环境。成功后看 <code>下载</code> 表格的状态列。
+            </div></div>
+            <div class="step"><div class="n">4</div><div>
+              <b>全量下载 + 校验</b> — 点"⬇️ 全量下载"。跑完后去 <code>匹配校验</code> 页,
+              重点 review <span class="tag err">❌ mismatch</span> 和 <span class="tag warn">⚠️ warn_title_diff</span>。
+            </div></div>
+
+            <h2 id="h-first">第一次使用</h2>
+            <h3>环境要求</h3>
+            <ul>
+              <li><b>ffmpeg</b> — 容器封装、元数据写入(不做有损编解码)。各平台安装命令见 <a onclick="scrollHelp(this,'h-diagnose')" style="color:var(--brand)">故障排查</a>。</li>
+              <li><b>deno</b> — yt-dlp 依赖它解决 YouTube 的 JS 挑战;没有也可配置 node 兜底。</li>
+              <li><b>能访问 YouTube</b> — 境内需自备代理。</li>
+            </ul>
+            <div class="callout ok"><b>💡 小贴士</b> &nbsp;首次启动会自动跑环境自检(<code>帮助 → 故障排查向导</code>),缺什么会直接给安装命令。</div>
+            <h3>音频策略</h3>
+            <p>核心原则:<b>不做任何有损二次转码</b>。YouTube 给免费用户的音频流有两种容器:</p>
+            <ul>
+              <li><code>.webm</code> 内含 <b>opus</b> 编码(~160 kbps)— 默认优先,音质更好</li>
+              <li><code>.m4a</code> 内含 <b>AAC</b> 编码(~128 kbps)</li>
+            </ul>
+            <p>项目优先取 opus,用 ffmpeg <code>-c copy</code> 把 webm 重封装为 opus(Ogg 容器),<b>bit-for-bit 保留</b>,不重新编码。想要 mp3 见 <a onclick="scrollHelp(this,'h-faq')" style="color:var(--brand)">FAQ</a>。</p>
+
+            <h2 id="h-download">⬇️ 下载</h2>
+            <p><b>做什么</b>:读歌单 → YT 搜索 → 筛选打分 → 下载 opus 流 → 嵌入封面/元数据。对应 CLI <code>main.py</code>。</p>
+            <h3>歌单格式</h3>
+            <p>每行一首歌,分隔符是<b>最后一个</b> <code>-</code>(因为有些歌名含 <code>-</code>):</p>
+            <pre><code>起风了-买辣椒也用券
+そばにいるね (留在我身边)-青山黛玛 _ SoulJa
+Monica-</code></pre>
+            <p>缺艺人字段可只写 <code>歌名-</code>,但匹配精度会下降(被判为 <code>ok_no_artist</code>)。</p>
+            <h3>操作要点</h3>
+            <ul>
+              <li><b>测试模式</b>:固定随机种子,可复现,验证环境用</li>
+              <li><b>断点续传</b>:中断后勾选,自动跳过 <code>success.json</code> 已成功项</li>
+              <li><b>并发数</b>:滑块调 1~10,默认 3;网速差就调小</li>
+              <li><b>失败重试</b>:失败列表在下载页底部,支持全部重试或勾选重试</li>
+            </ul>
+            <div class="callout warn"><b>⚠️ 重要</b> &nbsp;下载结果<b>不能保证 100% 准确</b>。1106 首实测:完美匹配约 66%、艺人别名疑似 27%、需 review 6%、真不匹配 1.3%。所以跑完务必去 <code>匹配校验</code> 页 review。</div>
+
+            <h2 id="h-review">🔍 匹配校验</h2>
+            <p><b>做什么</b>:对比"你请求的"和"实际下到的",按 8 级分类,出报告。对应 CLI <code>check_matches.py</code>。</p>
+            <p>这是工具的<b>质量闸</b>。即使搜索下错了,这里会暴露给你。优先 review <span class="tag err">❌ mismatch</span>,其次 <span class="tag warn">⚠️ warn_title_diff</span>。</p>
+            <h3>行内操作</h3>
+            <ul>
+              <li><b>↗ YT</b>:浏览器打开 videoId 人工核对</li>
+              <li><b>📁</b>:打开文件所在目录</li>
+              <li><b>↻ 重下</b>:删掉 success.json 该条目,重新搜索下载</li>
+            </ul>
+            <p>分类含义详见 <a onclick="scrollHelp(this,'h-classes')" style="color:var(--brand)">匹配分类体系</a>。</p>
+
+            <h2 id="h-organize">🗂️ 文件整理</h2>
+            <p><b>做什么</b>:① 按分类挪进子目录 <code>downloads/{cls}/</code>(幂等);② 按内嵌元数据改名。对应 CLI <code>organize_by_check.py</code> + <code>rename_by_metadata.py</code>。</p>
+            <ul>
+              <li><b>挪文件</b>:可选移动/复制,支持 dry-run 预览再 apply</li>
+              <li><b>改名</b>:把 mismatch/warn 的文件改成「真实艺人 - 真实标题」,让文件名和内容对上</li>
+            </ul>
+
+            <h2 id="h-tools">🛠️ 转码 & 改名</h2>
+            <h3>opus → mp3</h3>
+            <p>320 kbps CBR(libmp3lame 上限),保留封面与标签。输出进 <code>{dir}/mp3/</code>。对应 <code>opus2mp3.py</code>。</p>
+            <div class="callout warn"><b>注意</b> &nbsp;opus→mp3 是<b>有损→有损</b>,会有音质损失。仅在设备不支持 opus 时用。</div>
+            <h3>随机播放改名(红米音箱)</h3>
+            <p>给文件名加随机前缀(如 <code>a3b7_</code>),让音箱按文件名排序实现"伪随机"播放。支持 number/letter/mixed 三种前缀,可 <code>还原</code>。</p>
+
+            <h2 id="h-settings">⚙️ 设置 / Cookies</h2>
+            <h3>Cookies 三种来源(重点)</h3>
+            <ol>
+              <li><b>cookies.txt 文件</b>(推荐,Linux 下最稳):手动上传 Netscape 格式文件</li>
+              <li><b>从浏览器提取</b>:自动读 Chrome/Firefox/Edge 的 cookies(Windows/macOS 友好)</li>
+              <li><b>不使用</b>:可能被要求认证,精度下降</li>
+            </ol>
+            <p>所有来源都附"测试有效性"按钮——跑一次轻量请求验证。</p>
+            <h3>过滤词</h3>
+            <p><code>SKIP_KEYWORDS</code> 命中即跳过(karaoke/伴奏/翻唱…),<code>DEPRIORITIZE_KEYWORDS</code> 降权(live/acoustic…,扣 15 分但不是必删)。改完对新下载生效,不影响已下载文件。</p>
+            <h3>配置持久化</h3>
+            <p>UI 改动写入 <code>config.user.json</code>,覆盖 <code>config.py</code> 默认值,<b>不污染源码</b>。CLI 启动也读它,两边互不干扰。</p>
+
+            <h2 id="h-classes">匹配分类体系</h2>
+            <p><code>check_matches</code> 把每首歌按以下规则归类。橙色行需重点 review:</p>
+            <table style="width:100%; font-size:13px" class="tbl-wrap">
+              <thead><tr><th>标签</th><th>含义</th><th>触发条件</th></tr></thead>
+              <tbody>
+                <tr><td><span class="tag ok">✅ ok</span></td><td>艺人+标题都对</td><td>artist=exact, title_sim ≥ 0.55</td></tr>
+                <tr><td><span class="tag neutral">🟡 ok_no_artist</span></td><td>歌单原始缺艺人,只能按标题判断</td><td>requested 为空, sim ≥ 0.7</td></tr>
+                <tr><td><span class="tag alias">🔵 warn_alias_likely</span></td><td>艺人字面不同但标题完全一致(罗马音/艺名差异,如 米津玄师↔Kenshi Yonezu)</td><td>astat=none, sim ≥ 0.92</td></tr>
+                <tr style="background:var(--warn-soft)"><td><span class="tag warn">⚠️ warn_title_diff</span></td><td>艺人对但标题差异大</td><td>astat=exact, sim<0.55, 非子串/medley</td></tr>
+                <tr style="background:var(--warn-soft)"><td><span class="tag warn">⚠️ warn_partial_artist</span></td><td>艺人字符仅部分相交</td><td>astat=partial</td></tr>
+                <tr style="background:var(--warn-soft)"><td><span class="tag warn">⚠️ warn_no_artist</span></td><td>YT 返回的艺人为空</td><td>astat=no_matched</td></tr>
+                <tr style="background:var(--err-soft)"><td><span class="tag err">❌ mismatch</span></td><td><b>艺人不同 + 标题也明显不同,需重下</b></td><td>astat=none, sim<0.92</td></tr>
+              </tbody>
+            </table>
+            <p><b>medley 检测</b>:标题含 <code>Medley/连环炮/串烧/组曲</code> 或括号外 ≥2 个 <code>/</code>,会判为 mismatch,防止"金曲连环炮"因包含歌名被误判同曲。</p>
+
+            <h2 id="h-limits">已知限制(坦白告知)</h2>
+            <ol>
+              <li><b>歌单数据反向</b>:部分条目艺人写在前歌名在后,YT 搜索容错通常能救,但 metadata 会反。</li>
+              <li><b>含 <code>-</code> 的艺人名</b>(A-Lin、F.I.R.):解析器会切错,YT 容错常能救。</li>
+              <li><b>单字标题</b>(溯、哇):子串检测被跳过,落到 mismatch,需人工 review。</li>
+              <li><b>跨语言同曲</b>(金达莱花↔Azalea):同首歌但脚本无法自动识别,落到 warn_title_diff。</li>
+              <li><b>特定版本</b>:用户写"DJ 阿卓版"但 YT Music 没有,只下到普通版。</li>
+              <li><b>音质上限受账号影响</b>:无 Premium 上限是 opus ~160 kbps。</li>
+            </ol>
+
+            <h2 id="h-faq">常见问题 FAQ</h2>
+            <div id="faq-list"></div>
+
+            <h2 id="h-diagnose">故障排查向导</h2>
+            <p>点下面的按钮一键诊断,会自动检查所有依赖并给出修复建议:</p>
+            <button class="btn primary mb16" onclick="runDiagnose()">🩺 一键诊断环境</button>
+            <div id="diagnose-result"></div>
+            <h3>各平台依赖安装命令</h3>
+            <h4>ffmpeg</h4>
+            <pre><code># macOS
+brew install ffmpeg
+# Linux (Ubuntu/Debian)
+sudo apt install ffmpeg
+# Windows (scoop)
+scoop install ffmpeg</code></pre>
+            <h4>deno(yt-dlp 依赖它解 JS 挑战)</h4>
+            <pre><code>curl -fsSL https://deno.land/install.sh | sh
+# 装完重启 shell 或 source ~/.zshrc</code></pre>
+            <div class="callout info"><b>不想装 deno?</b> &nbsp;可在 <code>设置 → 环境</code> 配置 node 兜底,无 deno 也能跑。</div>
+
+            <h2 id="h-export">📦 导出诊断信息</h2>
+            <p>遇到问题想反馈?点下面的按钮,会自动打包<b>环境信息 + 最近日志 + 配置(脱敏)</b>成 zip,方便附到 issue:</p>
+            <button class="btn primary" onclick="toast('已导出 diagnostics_20260806.zip 到 downloads/')">📦 导出诊断包</button>
+            <p class="small muted mt8">包含:<code>env_info.json</code> · <code>logs/run_*.log</code> · <code>config.user.json</code>(不含 cookies 明文)</p>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /content -->
+
+    <!-- ============ LOG DRAWER ============ -->
+    <div class="logdrawer" id="logdrawer">
+      <div class="log-head">
+        <span class="t">运行日志(等价 run_*.log)</span>
+        <span class="ctrl" onclick="clearLog()" title="清空">清空</span>
+        <span class="ctrl" onclick="toggleLog()" id="log-toggle">▾</span>
+      </div>
+      <div class="log-body" id="logbody"></div>
+    </div>
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- nav ----------
+const PAGE_META = {
+  dashboard:['下载','从歌单批量下载 YouTube Music 音频'],
+  review:['匹配校验','对比请求 vs 实际内容,8 级分类'],
+  organize:['文件整理','按分类挪文件 / 按元数据改名 / 目录浏览'],
+  catalog:['来源识别','区分正版编录 vs 普通视频 fallback'],
+  urls:['URL 直下','用 YouTube URL 跳过搜索直接下载'],
+  tools:['转码 & 改名','opus→mp3 / 随机播放改名 / 去重'],
+  settings:['设置','Cookies / 网络 / 过滤 / 路径 / 环境自检'],
+};
+document.querySelectorAll('.nav-item').forEach(el=>{
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    el.classList.add('active');
+    const p = el.dataset.page;
+    document.querySelectorAll('.page').forEach(s=>s.classList.remove('active'));
+    document.getElementById(p).classList.add('active');
+    document.getElementById('page-title').textContent = PAGE_META[p][0];
+    document.getElementById('page-sub').textContent = PAGE_META[p][1];
+    document.querySelector('.content').scrollTop = 0;
+  });
+});
+
+// ---------- toast ----------
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// ---------- log ----------
+function logMsg(level, msg){
+  const b = document.getElementById('logbody');
+  const time = new Date().toLocaleTimeString('zh-CN',{hour12:false});
+  const div = document.createElement('div');
+  div.className = 'ln';
+  div.innerHTML = `<span class="muted">${time}</span> <span class="${level}">[${level.toUpperCase()}]</span> ${msg}`;
+  b.appendChild(div);
+  b.scrollTop = b.scrollHeight;
+}
+function toggleLog(){ document.getElementById('logdrawer').classList.toggle('collapsed');
+  document.getElementById('log-toggle').textContent = document.getElementById('logdrawer').classList.contains('collapsed') ? '▴':'▾';
+}
+function clearLog(){ document.getElementById('logbody').innerHTML=''; }
+
+// ---------- download demo ----------
+const SONGS = [
+  ['U','super junior'],['谎言','BIGBANG'],['Roly Poly','T-ara'],['Tell Me','Wonder Girls'],
+  ['Oh！','少女时代'],['Mister','KARA'],['If You','BIGBANG'],['Abracadabra','Brown Eyed Girls'],
+  ['Day by day','T-ara'],['因为我太傻','SS501'],['Fantastic Baby','BIGBANG'],['Ring Ding Dong','SHINee'],
+  ['Hot Summer','f(x)'],['No.9','T-ara'],['BANG BANG BANG','BIGBANG'],['SORRY,SORRY','Super Junior'],
+  ['Nobody','Wonder Girls'],['Gee','少女时代'],
+];
+const STAGES = ['搜索中…','命中候选','下载 opus 流','嵌入封面/元数据','完成 ✓'];
+let dlRunning = false, dlIdx = 0;
+let dlFilter = 'all';
+
+// 每首歌的运行时状态。初始全 'todo',下载时根据模拟打分流转。
+// state: todo | searching | downloading | done | skipped | failed | pending(待确认)
+const ROW = SONGS.map((s,i)=>({
+  title:s[0], artist:s[1],
+  state: i<11 ? 'done' : 'todo',
+  match: i<11 ? {title:s[0], artist:s[1]} : null,
+  confidence: i<11 ? 'high' : null,
+  reason: null,
+  progress: 0,
+}));
+
+// 模拟"搜索+打分"的结果。前 11 首预置为已高质量完成;
+// 后 7 首里有几首刻意做成"存疑",演示二次确认。
+const SIM = {
+  11: { confidence:'high',   match:{title:'Hot Summer', artist:'f(x)'},            score:92 },
+  12: { confidence:'high',   match:{title:'No.9', artist:'T-ara'},                 score:88 },
+  13: { confidence:'low',    match:{title:'BANG BANG BANG (MV)', artist:'BIGBANG'}, score:41, reason:'命中 MV 而非正版目录;标题含「MV」,疑似视频版而非音频条目' },
+  14: { confidence:'medium', match:{title:'SORRY, SORRY', artist:'Super Junior'},   score:68, reason:'艺人匹配但标题相似度 0.61(略低),可能存在 Live/Remix 版本混入' },
+  15: { confidence:'low',    match:{title:'Nobody - 各种版本 Medley', artist:'Wonder Girls'}, score:38, reason:'命中 medley/串烧(标题含 Medley),不是单曲版本' },
+  16: { confidence:'medium', match:{title:'Gee', artist:'소녀시대 (SNSD)'},         score:72, reason:'标题完全匹配,但艺人字面不同(少女时代 ↔ 소녀시대),疑似罗马音/艺名差异' },
+  17: { confidence:'high',   match:{title:'U - Super Junior', artist:'Super Junior'}, score:90 },
+};
+
+// 模拟 YT 返回的全部候选(确认弹层里展示)
+const CANDS_MOCK = {
+  13: [
+    {t:'BANG BANG BANG (MV)', a:'BIGBANG', dur:'3:47', ty:'video', flag:'MV', sc:41},
+    {t:'BANG BANG BANG', a:'BIGBANG · Topic', dur:'3:37', ty:'song', flag:'正版目录', sc:78},
+    {t:'BIGBANG - BANG BANG BANG (Live)', a:'BIGBANG', dur:'4:12', ty:'video', flag:'Live', sc:33},
+  ],
+  15: [
+    {t:'Nobody - 各种版本 Medley', a:'Wonder Girls', dur:'8:21', ty:'video', flag:'Medley', sc:38},
+    {t:'Nobody', a:'Wonder Girls · Topic', dur:'3:31', ty:'song', flag:'正版目录', sc:81},
+    {t:'Nobody (cover)', a:'KPOP Covers', dur:'3:25', ty:'video', flag:'翻唱', sc:22},
+  ],
+};
+
+function confTag(c){
+  if(c==='high') return '<span class="tag ok">高</span>';
+  if(c==='medium') return '<span class="tag warn">中</span>';
+  if(c==='low') return '<span class="tag err">低</span>';
+  return '<span class="muted">—</span>';
+}
+
+function renderTable(){
+  const tb = document.getElementById('dl-tbody');
+  // 计数
+  const cnt = {todo:0,done:0,pending:0,failed:0,skip:0};
+  ROW.forEach(r=>{ if(r.state==='done')cnt.done++; else if(r.state==='pending')cnt.pending++; else if(r.state==='failed')cnt.failed++; else if(r.state==='skipped')cnt.skip++; else cnt.todo++; });
+  document.getElementById('st-done').textContent = cnt.done;
+  document.getElementById('st-todo').textContent = cnt.todo + cnt.pending;
+  document.getElementById('st-fail').textContent = cnt.failed;
+  document.getElementById('st-pending').textContent = cnt.pending;
+  // 更新 filter pills 计数
+  document.querySelectorAll('#dl-filter .pill').forEach(p=>{
+    const f=p.dataset.f;
+    let txt = {all:'全部',todo:'待下载',done:'已完成',pending:'🟠 待确认',fail:'失败'}[f];
+    const n = f==='all'?ROW.length : cnt[f] ?? 0;
+    p.textContent = `${txt} ${n}`;
+  });
+
+  tb.innerHTML = ROW.map((r,i)=>{
+    if(dlFilter!=='all' && dlFilter!==r.state && !(dlFilter==='todo' && r.state==='searching')) return '';
+    let stat, matchCell, conf, op='';
+    if(r.state==='done'){
+      stat='<span class="tag ok">✓ 已完成</span>';
+      matchCell = `<b>${r.match.title}</b><br><span class="muted small">${r.match.artist}</span>`;
+      conf = confTag(r.confidence);
+    } else if(r.state==='searching'){
+      stat='<span class="tag info"><span class="spinner"></span> 搜索中</span>';
+      matchCell='<span class="muted small">查询 YT…</span>'; conf='<span class="muted">—</span>';
+    } else if(r.state==='downloading'){
+      stat='<span class="tag info"><span class="spinner"></span> 下载中</span>';
+      matchCell=`<b>${r.match.title}</b><br><span class="muted small">${r.match.artist}</span>`;
+      conf=confTag(r.confidence);
+    } else if(r.state==='pending'){
+      stat='<span class="tag warn">🟠 待确认</span>';
+      const reasonTag = r.confidence==='low'
+        ? '<span class="tag err">低</span>'
+        : '<span class="tag warn">中</span>';
+      matchCell = `<b>${r.match.title}</b> ${reasonTag}<br><span class="muted small">${r.match.artist}</span><br><span class="small" style="color:var(--warn)">⚠ ${r.reason}</span>`;
+      conf = confTag(r.confidence);
+      op = `<button class="btn sm primary" onclick="openConfirm(${i})">确认</button>`;
+    } else if(r.state==='skipped'){
+      stat='<span class="tag neutral">⏭ 已跳过</span>';
+      matchCell='<span class="muted small">用户跳过 / 存疑未下</span>'; conf='<span class="muted">—</span>';
+    } else if(r.state==='failed'){
+      stat='<span class="tag err">✗ 失败</span>';
+      matchCell=`<span class="small" style="color:var(--err)">${r.reason||'下载失败'}</span>`; conf='<span class="muted">—</span>';
+      op = `<button class="btn sm" onclick="toast('加入重试队列')">↻ 重试</button>`;
+    } else {
+      stat='<span class="tag neutral">待下载</span>';
+      matchCell='<span class="muted small">—</span>'; conf='<span class="muted">—</span>';
+    }
+    return `<tr><td>${stat}</td><td><b>${r.title}</b></td><td class="muted">${r.artist}</td><td>${matchCell}</td><td>${conf}</td><td>${op||'<span class="muted small">—</span>'}</td></tr>`;
+  }).join('');
+}
+renderTable();
+
+// filter 切换
+document.querySelectorAll('#dl-filter .pill').forEach(p=>{
+  p.addEventListener('click',()=>{
+    document.querySelectorAll('#dl-filter .pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active'); dlFilter=p.dataset.f; renderTable();
+  });
+});
+
+function startDownload(mode){
+  if(dlRunning){ toast('已有任务在运行'); return; }
+  const policy = document.getElementById('dl-confirm-policy').value;
+  const dir = document.getElementById('dl-dir').value;
+  dlRunning = true;
+  document.getElementById('btn-all').disabled = true;
+  document.getElementById('btn-stop').disabled = false;
+  document.getElementById('dl-status').className = 'tag info';
+  document.getElementById('dl-status').textContent = '运行中';
+  logMsg('info', `${mode==='all'?'全量':'测试'}下载开始 → 输出目录: ${dir}`);
+  logMsg('info', `质量策略: ${{confirm:'存疑逐条确认',skip:'存疑跳过',auto:'全部自动'}[policy]}`);
+  // 从第一个 todo 开始
+  dlIdx = ROW.findIndex(r=>r.state==='todo');
+  stepNext();
+}
+function stepNext(){
+  if(!dlRunning){ return; }
+  // 跳过非 todo
+  while(dlIdx < ROW.length && ROW[dlIdx].state !== 'todo') dlIdx++;
+  if(dlIdx >= ROW.length){ finishDl(); return; }
+  const r = ROW[dlIdx];
+  r.state='searching';
+  document.getElementById('dl-prog-text').textContent = `${dlIdx}/${ROW.length} · 搜索: ${r.title} - ${r.artist}`;
+  renderTable();
+  logMsg('info', `[${dlIdx+1}/${ROW.length}] ${r.title} - ${r.artist}: 搜索中…`);
+
+  setTimeout(()=>{
+    if(!dlRunning) return;
+    const sim = SIM[dlIdx] || {confidence:'high', match:{title:r.title, artist:r.artist}, score:85};
+    r.match = sim.match; r.confidence = sim.confidence; r.reason = sim.reason;
+    const policy = document.getElementById('dl-confirm-policy').value;
+    const suspect = sim.confidence !== 'high';
+
+    if(suspect && policy==='confirm'){
+      r.state='pending';
+      logMsg('warn', `  ↳ 候选存疑(${sim.confidence}, ${sim.reason}),转入待确认`);
+      renderTable();
+      advance();
+    } else if(suspect && policy==='skip'){
+      r.state='skipped';
+      logMsg('warn', `  ↳ 候选存疑,按策略跳过`);
+      renderTable(); advance();
+    } else {
+      // high,或 auto 策略
+      doDownload(dlIdx);
+    }
+  }, 600);
+}
+function doDownload(idx){
+  const r = ROW[idx];
+  r.state='downloading';
+  renderTable();
+  logMsg('info', `  ↳ 下载: ${r.match.title} - ${r.match.artist} [${r.confidence}]`);
+  let stage=0;
+  const tick=()=>{
+    if(!dlRunning) return;
+    if(stage < STAGES.length){
+      logMsg(stage===STAGES.length-1?'ok':'info', `     ${STAGES[stage]}`);
+      stage++; setTimeout(tick, 320);
+    } else {
+      r.state='done';
+      renderTable();
+      advance();
+    }
+  };
+  tick();
+}
+function advance(){
+  dlIdx++;
+  document.getElementById('dl-bar').style.width = Math.round(ROW.filter(r=>r.state==='done'||r.state==='skipped').length/ROW.length*100)+'%';
+  const done = ROW.filter(r=>r.state==='done').length;
+  document.getElementById('dl-prog-text').textContent = `${done}/${ROW.length} 完成`;
+  setTimeout(stepNext, 180);
+}
+function stopDownload(){
+  dlRunning = false;
+  document.getElementById('btn-all').disabled = false;
+  document.getElementById('btn-stop').disabled = true;
+  document.getElementById('dl-status').className = 'tag warn';
+  document.getElementById('dl-status').textContent = '已停止';
+  ROW.forEach(r=>{ if(r.state==='searching'||r.state==='downloading') r.state='todo'; });
+  renderTable();
+  logMsg('warn', '用户停止,已完成的不丢失');
+  toast('已停止');
+}
+function finishDl(){
+  dlRunning = false;
+  document.getElementById('btn-all').disabled = false;
+  document.getElementById('btn-stop').disabled = true;
+  document.getElementById('dl-status').className = 'tag ok';
+  document.getElementById('dl-status').textContent = '完成';
+  const done=ROW.filter(r=>r.state==='done').length;
+  const skip=ROW.filter(r=>r.state==='skipped').length;
+  const pend=ROW.filter(r=>r.state==='pending').length;
+  document.getElementById('dl-prog-text').textContent = `完成: ${done} 下载 / ${pend} 待确认 / ${skip} 跳过`;
+  logMsg('ok', `全部结束:下载 ${done} · 待确认 ${pend} · 跳过 ${skip}`);
+  toast('下载结束 ✓');
+}
+
+// ---------- 候选确认弹层 ----------
+let confirmIdx = -1, pickedCand = 0;
+function openConfirm(idx){
+  confirmIdx = idx; pickedCand = 0;
+  const r = ROW[idx];
+  document.getElementById('confirm-req').textContent = `${r.title} - ${r.artist}`;
+  document.getElementById('confirm-reason').innerHTML = `<b>⚠ ${r.reason}</b>`;
+  const cands = CANDS_MOCK[idx] || [
+    {t:r.match.title, a:r.match.artist, dur:'3:30', ty:'video', flag:r.reason?'存疑':'', sc:50},
+  ];
+  document.getElementById('confirm-cands').innerHTML = cands.map((c,k)=>{
+    const flagTag = {
+      'MV':'<span class="tag err">MV</span>',
+      'Live':'<span class="tag warn">Live</span>',
+      'Medley':'<span class="tag err">Medley</span>',
+      '翻唱':'<span class="tag warn">翻唱</span>',
+      '正版目录':'<span class="tag ok">正版目录</span>',
+      '存疑':'<span class="tag warn">存疑</span>',
+    }[c.flag] || `<span class="tag neutral">${c.flag||'—'}</span>`;
+    return `<tr style="cursor:pointer" onclick="pickCand(${k})" id="cand-${k}">
+      <td><input type="radio" class="checkbox" ${k===0?'checked':''} name="cf"></td>
+      <td class="small">${c.t}</td><td class="small muted">${c.a}</td>
+      <td class="small">${c.dur}</td><td class="small">${c.ty}</td>
+      <td>${flagTag}</td><td class="small">${c.sc}</td></tr>`;
+  }).join('');
+  document.getElementById('confirm-overlay').style.display='flex';
+  logMsg('info', `打开候选确认: ${r.title} (共 ${cands.length} 条候选)`);
+}
+function pickCand(k){
+  pickedCand = k;
+  document.querySelectorAll('#confirm-cands tr').forEach((tr,n)=>{
+    tr.style.background = n===k ? 'var(--brand-soft)' : '';
+    tr.querySelector('input').checked = n===k;
+  });
+}
+function confirmPick(useFirst){
+  if(confirmIdx<0) return;
+  const r = ROW[confirmIdx];
+  if(useFirst===false){
+    r.state='skipped';
+    logMsg('warn', `用户跳过: ${r.title}`);
+    toast('已跳过');
+  } else {
+    const k = useFirst===true ? 0 : pickedCand;
+    r.match = { title: r.match.title, artist: r.match.artist }; // 简化:沿用
+    r.confidence = 'medium';
+    r.reason = null;
+    logMsg('ok', `用户确认下载: ${r.title} (候选 #${k+1})`);
+    closeConfirm();
+    if(dlRunning){ doDownload(confirmIdx); }
+    else { r.state='done'; renderTable(); toast('已加入下载'); }
+    return;
+  }
+  closeConfirm();
+  renderTable();
+  if(dlRunning) advance();
+}
+function closeConfirm(){
+  document.getElementById('confirm-overlay').style.display='none';
+  confirmIdx=-1;
+}
+
+// ---------- settings tabs ----------
+function settingsTab(el, tab){
+  el.parentElement.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.stab').forEach(s=>s.style.display='none');
+  document.getElementById('stab-'+tab).style.display='block';
+}
+function ckMode(el, mode){
+  el.parentElement.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.ck-pane').forEach(p=>p.style.display='none');
+  document.getElementById('ck-'+mode).style.display='block';
+}
+function ckTest(){
+  const r = document.getElementById('ck-test-result');
+  r.textContent = '测试中…'; r.style.color = 'var(--text-3)';
+  logMsg('info','cookies 有效性测试: ytmusicapi.search("Gee")');
+  setTimeout(()=>{
+    r.innerHTML = '<span style="color:var(--ok)">✓ 通过,返回 5 条结果</span>';
+    logMsg('ok','cookies 有效');
+  }, 900);
+}
+function netTest(){
+  const r = document.getElementById('net-test-result');
+  r.textContent = '测试中…';
+  logMsg('info','连通性测试: 请求 music.youtube.com');
+  setTimeout(()=>{
+    r.innerHTML = '<span style="color:var(--ok)">✓ 直连可达 (98ms)</span>';
+    logMsg('ok','网络连通');
+  }, 800);
+}
+
+// chip removal
+document.querySelectorAll('.keyword-list').forEach(list=>{
+  list.addEventListener('click', e=>{
+    if(e.target.classList.contains('x')){ e.target.closest('.chip').remove(); toast('已移除'); }
+    else if(e.target.classList.contains('add')){ toast('添加关键词(原型演示)'); }
+  });
+});
+
+// init log
+logMsg('info','后端已启动: localhost:8765');
+logMsg('info','已加载 config.user.json · cookies.txt(42 条)');
+logMsg('ok','环境自检通过: ffmpeg 7.1 · deno 2.1');
+</script>
+</body>
+</html>

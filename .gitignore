@@ -7,3 +7,11 @@ logs/**
 **/__pycache__/**
 **/__pycache__
 cookies.txt
+
+# UI (Tauri + React)
+config.user.json
+ui/node_modules/
+ui/dist/
+ui/src-tauri/target/
+ui/src-tauri/binaries/*
+!ui/src-tauri/binaries/.gitkeep
