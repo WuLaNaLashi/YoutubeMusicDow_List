@@ -5,6 +5,7 @@
 import { useState, type ReactNode } from "react";
 import DownloadPage from "./pages/DownloadPage";
 import ReviewPage from "./pages/ReviewPage";
+import OrganizePage from "./pages/OrganizePage";
 
 type PageId =
   | "dashboard"
@@ -48,6 +49,7 @@ export default function App() {
   let content: ReactNode;
   if (page === "dashboard") content = <DownloadPage />;
   else if (page === "review") content = <ReviewPage />;
+  else if (page === "organize") content = <OrganizePage />;
   else content = <Placeholder page={page} />;
 
   const [title, sub] = PAGE_META[page];
