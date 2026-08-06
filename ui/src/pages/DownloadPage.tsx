@@ -53,9 +53,10 @@ export default function DownloadPage() {
     });
   }, []);
 
-  // 歌单文本变化 → 解析进 store
+  // 歌单文本变化 → 解析进 store(防抖 300ms,避免逐字重算卡顿)
   useEffect(() => {
-    setSongs(loadSongs(songText));
+    const t = setTimeout(() => setSongs(loadSongs(songText)), 300);
+    return () => clearTimeout(t);
   }, [songText, setSongs]);
 
   const counts = useMemo(() => {
@@ -65,8 +66,9 @@ export default function DownloadPage() {
   }, [rows]);
 
   const filteredRows = useMemo(() => {
-    if (filter === "all") return rows.map((r, i) => ({ r, i }));
-    return rows.map((r, i) => ({ r, i })).filter(({ r }) => r.state === filter);
+    const all = filter === "all" ? rows.map((r, i) => ({ r, i })) : rows.map((r, i) => ({ r, i })).filter(({ r }) => r.state === filter);
+    // 超过 200 条只渲染前 200(大歌单避免 DOM 过多卡顿),其余靠筛选查看
+    return all.slice(0, 200);
   }, [rows, filter]);
 
   const doneCount = counts.done;
@@ -339,6 +341,7 @@ export default function DownloadPage() {
           <Tag color="ok" className="mx-1">高</Tag>自动下载 ·
           <Tag color="warn" className="mx-1">中</Tag>按策略 ·
           <Tag color="err" className="mx-1">低</Tag>默认进待确认
+          {rows.length > 200 && <span className="ml-2">· 仅显示前 200 条(用上方筛选查看其余)</span>}
         </div>
       </Card>
 
