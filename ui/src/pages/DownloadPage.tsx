@@ -8,6 +8,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { Button, Card, Progress, Stat, Tag, toast } from "../components/ui";
 import { loadSongs } from "../lib/parseList";
 import { loadConfig, saveConfig, getConfig, type AppConfig } from "../lib/config";
@@ -23,6 +25,7 @@ export default function DownloadPage() {
   const [downloadsDir, setDownloadsDir] = useState<string>(cfg.downloadsDir);
   const [confirmPolicy, setConfirmPolicy] = useState<AppConfig["confirmPolicy"]>(cfg.confirmPolicy);
   const [filter, setFilter] = useState<"all" | RowState>("all");
+  const [started, setStarted] = useState(false);
 
   const rows = useDownloadStore((s) => s.rows);
   const isRunning = useDownloadStore((s) => s.isRunning);
@@ -248,9 +251,34 @@ export default function DownloadPage() {
           )}
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="primary" onClick={() => startBatch("all")}>⬇️ 全量下载</Button>
-          <Button onClick={() => startBatch("test")}>🎲 测试 5 首</Button>
-          <Button variant="ghost" onClick={() => toast("断点续传:已完成项自动跳过")}>⏏️ 断点续传</Button>
+          {!started ? (
+            <Button
+              variant="primary"
+              disabled={totalCount === 0}
+              onClick={() => {
+                if (totalCount === 0) {
+                  toast("歌单为空,先在上方编辑或导入");
+                  return;
+                }
+                setStarted(true);
+                toast(`已开始,共 ${totalCount} 首待处理`);
+              }}
+            >
+              ▶️ 开始下载(共 {totalCount} 首)
+            </Button>
+          ) : (
+            <>
+              <Button variant="primary" onClick={() => startBatch("all")} disabled={isRunning}>
+                ⬇️ 全量下载
+              </Button>
+              <Button onClick={() => startBatch("test")} disabled={isRunning}>
+                🎲 测试 5 首
+              </Button>
+              <Button variant="ghost" onClick={() => toast("断点续传:已完成项自动跳过")}>
+                ⏏️ 断点续传
+              </Button>
+            </>
+          )}
           <div className="flex-1" />
           <Button variant="danger" onClick={stopBatch} disabled={!isRunning}>⏹ 停止</Button>
         </div>
@@ -287,20 +315,21 @@ export default function DownloadPage() {
                 <th className="px-3 py-2 border-b border-border">状态</th>
                 <th className="px-3 py-2 border-b border-border">标题</th>
                 <th className="px-3 py-2 border-b border-border">艺人</th>
-                <th className="px-3 py-2 border-b border-border">实际匹配 / 质量标注</th>
+                <th className="px-3 py-2 border-b border-border">实际匹配 / 文件</th>
                 <th className="px-3 py-2 border-b border-border">置信度</th>
+                <th className="px-3 py-2 border-b border-border">操作</th>
               </tr>
             </thead>
             <tbody>
               {filteredRows.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-3 py-8 text-center text-text-3">
+                  <td colSpan={6} className="px-3 py-8 text-center text-text-3">
                     {totalCount === 0 ? "歌单为空,先在上方编辑或导入" : "该分类无条目"}
                   </td>
                 </tr>
               )}
               {filteredRows.map(({ r, i }) => (
-                <RowRow key={i} row={r} onConfirm={() => resolveConfirm("skip")} />
+                <RowRow key={i} row={r} />
               ))}
             </tbody>
           </table>
@@ -368,6 +397,7 @@ export default function DownloadPage() {
                     <th className="px-2 py-1.5">标题</th>
                     <th className="px-2 py-1.5">频道/上传者</th>
                     <th className="px-2 py-1.5">标注</th>
+                    <th className="px-2 py-1.5">预览</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -384,6 +414,19 @@ export default function DownloadPage() {
                       <td className="px-2 py-1.5">{c.title}</td>
                       <td className="px-2 py-1.5 text-text-2">{c.uploader}</td>
                       <td className="px-2 py-1.5">{k === 0 && <Tag color="warn">最优(存疑)</Tag>}</td>
+                      <td className="px-2 py-1.5">
+                        <a
+                          href={`https://music.youtube.com/watch?v=${c.id}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            openUrl(`https://music.youtube.com/watch?v=${c.id}`).catch((err) => toast(`打开失败: ${err}`));
+                          }}
+                          className="text-brand hover:underline text-[12px]"
+                        >
+                          ↗ 试听
+                        </a>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -401,7 +444,7 @@ export default function DownloadPage() {
   );
 }
 
-function RowRow({ row, onConfirm: _onConfirm }: { row: Row; onConfirm: () => void }) {
+function RowRow({ row }: { row: Row }) {
   const stateMap: Record<RowState, { tag: string; color: "ok" | "info" | "warn" | "err" | "neutral" }> = {
     todo: { tag: "待下载", color: "neutral" },
     searching: { tag: "搜索中", color: "info" },
@@ -412,6 +455,32 @@ function RowRow({ row, onConfirm: _onConfirm }: { row: Row; onConfirm: () => voi
     skipped: { tag: "⏭ 已跳过", color: "neutral" },
   };
   const s = stateMap[row.state];
+
+  async function openDir() {
+    if (!row.filepath) {
+      toast("无文件路径");
+      return;
+    }
+    try {
+      await revealItemInDir(row.filepath);
+    } catch (e) {
+      toast(`打开失败: ${e}`);
+    }
+  }
+
+  async function openYt() {
+    if (!row.match?.id) {
+      toast("无 videoId");
+      return;
+    }
+    try {
+      await openUrl(`https://music.youtube.com/watch?v=${row.match!.id}`);
+    } catch (e) {
+      toast(`打开失败: ${e}`);
+    }
+  }
+
+  const filename = row.filepath ? row.filepath.split(/[\\/]/).pop() : null;
 
   return (
     <tr className="hover:bg-bg-soft">
@@ -431,6 +500,11 @@ function RowRow({ row, onConfirm: _onConfirm }: { row: Row; onConfirm: () => voi
             </div>
             {row.reason && <div className="text-[11.5px] text-warn mt-0.5">⚠ {row.reason}</div>}
             {row.failReason && <div className="text-[11.5px] text-err mt-0.5">{row.failReason}</div>}
+            {filename && (
+              <div className="text-[11.5px] text-text-3 mt-0.5 font-mono truncate max-w-[280px]" title={row.filepath ?? ""}>
+                📄 {filename}
+              </div>
+            )}
           </div>
         ) : row.failReason ? (
           <span className="text-[12px] text-err">{row.failReason}</span>
@@ -443,6 +517,17 @@ function RowRow({ row, onConfirm: _onConfirm }: { row: Row; onConfirm: () => voi
         {row.confidence === "medium" && <Tag color="warn">中</Tag>}
         {row.confidence === "low" && <Tag color="err">低</Tag>}
         {!row.confidence && <span className="text-text-3 text-xs">—</span>}
+      </td>
+      <td className="px-3 py-2 border-b border-bg-soft2 whitespace-nowrap">
+        {row.state === "done" && row.filepath && (
+          <Button className="!px-2 !py-0.5 !text-[12px]" onClick={openDir}>📁 打开目录</Button>
+        )}
+        {row.match?.id && row.state !== "done" && (
+          <Button className="!px-2 !py-0.5 !text-[12px]" onClick={openYt}>↗ YT</Button>
+        )}
+        {(row.state === "done" || !row.match?.id) && row.state !== "done" && (
+          <span className="text-text-3 text-xs">—</span>
+        )}
       </td>
     </tr>
   );
