@@ -14,6 +14,8 @@ use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 use tokio::sync::Mutex as AsyncMutex;
 
+use crate::proxy::resolve_proxy;
+
 static NEXT_TASK_ID: AtomicU64 = AtomicU64::new(1);
 
 /// 运行中的任务:持有 child,可在取消时 start_kill。
@@ -73,6 +75,10 @@ struct StartEvent {
 /// - `{event_name}_start` : 启动 `{ task_id, pid }`
 /// - `{event_name}_done`  : 结束 `{ task_id, success, code }`
 ///
+/// 参数 `inject_proxy`:为 true 时,启动子进程前自动探测系统代理
+/// (env > 系统设置),并注入 HTTP_PROXY/HTTPS_PROXY/ALL_PROXY 环境变量。
+/// 让"系统代理开着就能直接用",yt-dlp/ffmpeg 都会读到。
+///
 /// 返回 task_id,前端可用 `cancel_task` 取消。
 #[tauri::command]
 pub async fn run_command(
@@ -81,6 +87,7 @@ pub async fn run_command(
     args: Vec<String>,
     cwd: Option<String>,
     event_name: String,
+    inject_proxy: Option<bool>,
 ) -> Result<u64, String> {
     let task_id = NEXT_TASK_ID.fetch_add(1, Ordering::SeqCst);
 
@@ -93,6 +100,24 @@ pub async fn run_command(
         .kill_on_drop(true);
     if let Some(dir) = &cwd {
         cmd.current_dir(dir);
+    }
+
+    // 注入代理环境变量(仅当 inject_proxy=true)
+    if inject_proxy.unwrap_or(false) {
+        if let Some(proxy_url) = resolve_proxy() {
+            // 同时设大小写两种,yt-dlp 内部用 requests,读 HTTP_PROXY/HTTPS_PROXY;
+            // ffmpeg 大多数情况不联网,但设上也无害。
+            for key in &[
+                "HTTP_PROXY",
+                "http_proxy",
+                "HTTPS_PROXY",
+                "https_proxy",
+                "ALL_PROXY",
+                "all_proxy",
+            ] {
+                cmd.env(key, &proxy_url);
+            }
+        }
     }
 
     let mut child = cmd

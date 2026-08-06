@@ -29,17 +29,22 @@ export interface StartEvent {
   pid: number;
 }
 
-/** 启动一个子进程,流式推输出。返回 task_id。 */
+/** 启动一个子进程,流式推输出。返回 task_id。
+ *
+ * opts.injectProxy:为 true 时,子进程自动继承探测到的系统代理(env > 系统设置),
+ * yt-dlp/ffmpeg 会通过 HTTP_PROXY 等环境变量读到。默认 false(因为下载用 --proxy 显式传更稳)。
+ */
 export function runCommand(
   program: string,
   args: string[],
-  opts: { cwd?: string; event: string },
+  opts: { cwd?: string; event: string; injectProxy?: boolean },
 ): Promise<number> {
   return invoke<number>("run_command", {
     program,
     args,
     cwd: opts.cwd ?? null,
     eventName: opts.event,
+    injectProxy: opts.injectProxy ?? false,
   });
 }
 
@@ -51,6 +56,16 @@ export function cancelTask(taskId: number): Promise<boolean> {
 /** 探测二进制是否存在。 */
 export function probeBinary(bin: string): Promise<string | null> {
   return invoke<string | null>("probe_binary", { bin });
+}
+
+/** 探测系统级代理设置(macOS scutil / Windows 注册表 / Linux gsettings)。返回 URL 或 null。 */
+export function detectSystemProxy(): Promise<string | null> {
+  return invoke<string | null>("detect_system_proxy_cmd");
+}
+
+/** 解析最终生效代理(env > 系统设置)。返回 URL 或 null。 */
+export function resolveProxy(): Promise<string | null> {
+  return invoke<string | null>("resolve_proxy_cmd");
 }
 
 /** 监听某一行的输出事件。返回取消监听函数。 */

@@ -19,7 +19,7 @@ import { assessConfidence } from "./confidence";
 import type { AppConfig } from "./config";
 import type { Song } from "./parseList";
 import type { SearchResult } from "./pickBest";
-import { runCommand, cancelTask, onLine, onDone } from "../api/tauri";
+import { runCommand, cancelTask, onLine, onDone, resolveProxy } from "../api/tauri";
 import { sanitizeFilename } from "./sanitize";
 import type { Row } from "../stores/downloadStore";
 
@@ -62,9 +62,22 @@ async function downloadOne(
   ];
   if (cfg.embedMetadata) args.push("--embed-metadata");
   if (cfg.embedThumbnail) args.push("--embed-thumbnail");
-  if (cfg.proxy) {
-    args.push("--proxy", cfg.proxy);
+
+  // 代理:优先 config.proxy(用户显式填),否则探测系统代理(env > 系统设置)。
+  // 显式 --proxy 最稳(覆盖 yt-dlp 所有请求);同时开 injectProxy 兜底环境变量。
+  let proxyUrl = cfg.proxy;
+  if (!proxyUrl) {
+    try {
+      proxyUrl = (await resolveProxy()) ?? "";
+    } catch {
+      proxyUrl = "";
+    }
   }
+  if (proxyUrl) {
+    args.push("--proxy", proxyUrl);
+    onLog("info", `  代理: ${proxyUrl}`);
+  }
+
   if (cfg.cookiesFile) {
     args.push("--cookies", cfg.cookiesFile);
   } else if (cfg.cookiesFromBrowser) {
@@ -86,7 +99,8 @@ async function downloadOne(
         if (e.success) resolve();
         else reject(new Error(`yt-dlp 退出码 ${e.code ?? "?"}`));
       }).then(() => {
-        runCommand("yt-dlp", [...args, url], { event }).catch((err) => {
+        // injectProxy=true:即使 --proxy 没传,子进程也继承系统代理环境变量(兜底)
+        runCommand("yt-dlp", [...args, url], { event, injectProxy: true }).catch((err) => {
           if (!settled) {
             settled = true;
             reject(new Error(`无法启动 yt-dlp: ${err}`));

@@ -1,9 +1,11 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 mod process;
+mod proxy;
 
 // 命令需 pub 才能被 generate_handler! 宏引用
 use process::{cancel_task, probe_binary, run_command};
+use proxy::{detect_system_proxy_cmd, resolve_proxy_cmd};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -15,7 +17,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             run_command,
             cancel_task,
-            probe_binary
+            probe_binary,
+            detect_system_proxy_cmd,
+            resolve_proxy_cmd
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

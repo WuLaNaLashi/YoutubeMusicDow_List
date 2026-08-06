@@ -7,7 +7,7 @@
  * 注:yt-dlp ytsearch 没有 ytmusicapi 的 filter="songs" 精准,但够用,
  * 靠 pickBest 打分 + confidence 置信度兜底(见 confidence.ts)。
  */
-import { runCommand, onLine, onDone } from "../api/tauri";
+import { runCommand, onLine, onDone, resolveProxy } from "../api/tauri";
 import type { SearchResult } from "./pickBest";
 
 /** yt-dlp --dump-json 单行输出的结构(只取关心的字段)。 */
@@ -79,6 +79,16 @@ export async function searchSong(
   });
 
   try {
+    // 探测代理:config 没显式传的话,这里用 resolveProxy(env > 系统设置)
+    let proxyUrl: string | null = null;
+    try {
+      proxyUrl = await resolveProxy();
+    } catch {
+      proxyUrl = null;
+    }
+    const searchArgs = [`ytsearch${limit}:${query}`, "--flat-playlist", "--dump-json"];
+    if (proxyUrl) searchArgs.push("--proxy", proxyUrl);
+
     await new Promise<void>((resolve, reject) => {
       let taskDone = false;
       onDone(event, (e) => {
@@ -88,7 +98,8 @@ export async function searchSong(
         else reject(new Error("yt-dlp 搜索失败(exit 非 0 且无结果)"));
       }).then((un) => {
         // done 监听器立即装好;若命令已结束也会补触发
-        runCommand("yt-dlp", [`ytsearch${limit}:${query}`, "--flat-playlist", "--dump-json"], { event })
+        // injectProxy=true 兜底:即使 --proxy 没传,环境变量也带上系统代理
+        runCommand("yt-dlp", searchArgs, { event, injectProxy: true })
           .catch((err) => {
             if (!taskDone) {
               taskDone = true;

@@ -121,8 +121,10 @@ UI 的目标:**把这些能力收进一个跨平台图形界面,把"多步 CLI �
 
 | # | 能力 | 说明 |
 |---|------|------|
-| S-N1 | **代理** | 输入框,支持 `http://`/`socks5://`,空=直连;附"测试连通"按钮(请求 YouTube) |
-| S-N2 | **连通性诊断** | 一键检测:能否解析 YouTube / ytmusicapi 是否通 / ffmpeg 是否在 PATH / deno 或 node 是否在 PATH |
+| S-N1 | **代理** | 输入框,支持 `http://`/`socks5://`,空=自动探测;附"测试连通"按钮(请求 YouTube) |
+| S-N2 | **⭐ 系统代理自动探测** | **应用自动读取系统代理设置,用户不用在 UI 里重复填**。优先级:`config.proxy`(UI 手填)> 环境变量 `HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY` > 系统全局代理设置。探测方式:macOS `scutil --proxy` / Windows 注册表 `HKCU\...\Internet Settings` / Linux `gsettings org.gnome.system.proxy`。yt-dlp 子进程启动时,把探测到的代理同时通过 `--proxy` 显式传 + 注入环境变量兜底。**场景:用户开着 Clash/Surge 的"系统代理"模式,应用直接能用,无需任何配置** |
+| S-N3 | **代理状态展示** | 设置页显示"已检测到系统代理: 127.0.0.1:7897"或"未检测到代理(直连)",让用户知道当前实际走没走代理 |
+| S-N4 | **连通性诊断** | 一键检测:能否解析 YouTube / ytmusicapi 是否通 / ffmpeg 是否在 PATH / deno 或 node 是否在 PATH |
 
 #### 3.7.3 下载与过滤
 
