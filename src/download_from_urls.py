@@ -15,7 +15,7 @@ from typing import Optional
 import yt_dlp
 
 import config
-from downloader import sanitize_filename, _build_ydl_opts
+from downloader import sanitize_filename, _build_ydl_opts, _get_ytmusic
 
 log = logging.getLogger(__name__)
 
@@ -23,6 +23,8 @@ log = logging.getLogger(__name__)
 _YT_ID_RE = re.compile(
     r"(?:v=|/v/|/embed/|/shorts/|/watch\?.*v=|youtu\.be/|/e/|/vi?/)([A-Za-z0-9_-]{11})"
 )
+# playlist/album list id, 如 ...playlist?list=PLxxx / OLAK5uy_xxx(专辑) / RDxxx(电台)
+_PLAYLIST_ID_RE = re.compile(r"[?&]list=([A-Za-z0-9_-]+)")
 # Lines that are comments or blank
 _COMMENT_RE = re.compile(r"^\s*(#|$)")
 
@@ -31,6 +33,84 @@ def extract_video_id(url: str) -> Optional[str]:
     """Extract the 11-char YouTube video ID from a URL."""
     m = _YT_ID_RE.search(url)
     return m.group(1) if m else None
+
+
+def extract_playlist_id(url: str) -> Optional[str]:
+    m = _PLAYLIST_ID_RE.search(url)
+    return m.group(1) if m else None
+
+
+def _info_opts() -> dict:
+    """元数据探测配置:与 _build_ydl_opts 同源的 cookies/客户端参数,
+    否则在被 bot 标记的 IP 上探测步直接失败,连着重试拖垮整个批。"""
+    opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "noprogress": True,
+        "extract_flat": False,
+    }
+    if config.PROXY:
+        opts["proxy"] = config.PROXY
+    if config.YOUTUBE_PLAYER_CLIENT:
+        opts["extractor_args"] = {
+            "youtube": {"player_client": [config.YOUTUBE_PLAYER_CLIENT]}
+        }
+    if config.COOKIES_FILE:
+        opts["cookiefile"] = config.COOKIES_FILE
+    elif config.COOKIES_FROM_BROWSER:
+        opts["cookiesfrombrowser"] = (config.COOKIES_FROM_BROWSER,)
+    return opts
+
+
+def _expand_via_ytmusic(playlist_id: str) -> list[dict]:
+    """ytmusicapi 展开歌单/专辑:快且带干净的 title/artists 元数据。"""
+    try:
+        ytm = _get_ytmusic()
+        pl = ytm.get_playlist(playlist_id, limit=None)  # None = 全部曲目
+        tracks = []
+        for t in pl.get("tracks") or []:
+            vid = t.get("videoId")
+            if vid:
+                tracks.append({
+                    "videoId": vid,
+                    "title": t.get("title") or "",
+                    "artists": [a.get("name", "") for a in t.get("artists") or []],
+                })
+        return tracks
+    except Exception as e:
+        log.warning("ytmusicapi get_playlist(%s) failed: %s", playlist_id, e)
+        return []
+
+
+def _expand_via_ytdlp(url: str) -> list[dict]:
+    """yt-dlp flat 兜底展开(私有歌单/接口失败时)。只拿 videoId,无干净元数据。"""
+    opts = _info_opts() | {"extract_flat": "in_playlist", "skip_download": True}
+    try:
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+        return [
+            {"videoId": e.get("id"), "title": e.get("title") or "", "artists": []}
+            for e in (info.get("entries") or [])
+            if e.get("id")
+        ]
+    except Exception as e:
+        log.warning("yt-dlp flat expand failed for %s: %s", url, e)
+        return []
+
+
+def expand_url(url: str) -> list[dict]:
+    """URL -> 曲目列表[{videoId,title,artists}]。
+    playlist/专辑 URL 展开全部曲目;watch URL 返回单曲;展开失败降级单曲。"""
+    playlist_id = extract_playlist_id(url)
+    if playlist_id:
+        tracks = _expand_via_ytmusic(playlist_id) or _expand_via_ytdlp(url)
+        if tracks:
+            return tracks
+        log.warning("playlist %s 展开失败,尝试按单曲处理", playlist_id)
+    vid = extract_video_id(url)
+    if vid:
+        return [{"videoId": vid, "title": "", "artists": []}]
+    return []
 
 
 def load_urls(path: Path) -> list[str]:
@@ -55,28 +135,22 @@ def load_urls(path: Path) -> list[str]:
     return unique
 
 
-def download_from_url(url: str, out_dir: Path) -> dict:
-    """Download a single YouTube URL as audio. Returns result dict."""
-    # First, extract info to get title/uploader for a clean filename
-    info_opts = {
-        "quiet": True,
-        "no_warnings": True,
-        "noprogress": True,
-        "extract_flat": False,
-    }
-    if config.PROXY:
-        info_opts["proxy"] = config.PROXY
-    if config.COOKIES_FROM_BROWSER:
-        info_opts["cookiesfrombrowser"] = (config.COOKIES_FROM_BROWSER,)
+def download_from_url(url: str, out_dir: Path, meta: Optional[dict] = None) -> dict:
+    """Download a single YouTube URL as audio. Returns result dict.
 
+    meta: 展开歌单时自带的 {title, artists},可跳过探测请求直接命名。
+    """
     last_err: Optional[str] = None
     for attempt in range(1, config.RETRY_TIMES + 1):
         try:
-            with yt_dlp.YoutubeDL(info_opts) as ydl:
-                info = ydl.extract_info(url, download=False)
-
-            title = info.get("title") or "untitled"
-            artist = info.get("artist") or info.get("uploader") or ""
+            if meta and meta.get("title"):
+                title = meta["title"]
+                artist = "、".join(a for a in meta.get("artists", []) if a)
+            else:
+                with yt_dlp.YoutubeDL(_info_opts()) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                title = info.get("title") or "untitled"
+                artist = info.get("artist") or info.get("uploader") or ""
             file_stem = sanitize_filename(
                 f"{artist} - {title}" if artist else title
             )
@@ -193,8 +267,31 @@ def main(argv: list[str] | None = None) -> int:
 
     logging.info("Loaded %d unique URLs", len(urls))
 
+    # 展开:watch 单曲 + playlist/专辑整表
+    items: list[dict] = []
+    for u in urls:
+        tracks = expand_url(u)
+        pl = extract_playlist_id(u)
+        if pl:
+            logging.info("Playlist %s -> %d tracks", pl, len(tracks))
+        items.extend({"url": u, **t} for t in tracks)
+
+    # 去重(跨 list 的 videoId 相同只下一次)
+    seen_vids: set[str] = set()
+    unique: list[dict] = []
+    dup = 0
+    for it in items:
+        if it["videoId"] in seen_vids:
+            dup += 1
+            continue
+        seen_vids.add(it["videoId"])
+        unique.append(it)
+    if dup:
+        logging.info("Dedup: dropped %d duplicate tracks across inputs", dup)
+    items = unique
+
     if args.limit > 0:
-        urls = urls[:args.limit]
+        items = items[:args.limit]
 
     url_success_log = config.LOGS_DIR / "url_success.json"
     url_failed_log = config.LOGS_DIR / "url_failed.json"
@@ -203,38 +300,52 @@ def main(argv: list[str] | None = None) -> int:
     failed: dict = {}
 
     if args.resume:
-        before = len(urls)
-        urls = [u for u in urls if u not in success]
-        logging.info("Resume: %d already done, %d to go", before - len(urls), len(urls))
+        # 按历史 videoId 跳过(而非 URL):同一首曲子换了 URL/来自不同歌单也算已下载
+        done_vids = {
+            r.get("video_id") for r in success.values() if r.get("video_id")
+        }
+        before = len(items)
+        items = [it for it in items if it["videoId"] not in done_vids]
+        logging.info("Resume: %d already downloaded, %d to go",
+                     before - len(items), len(items))
 
-    if not urls:
+    if not items:
         logging.info("Nothing to do.")
         return 0
 
     logging.info("Starting %d downloads with concurrency=%d",
-                 len(urls), config.CONCURRENT_DOWNLOADS)
+                 len(items), config.CONCURRENT_DOWNLOADS)
 
     completed = 0
     with concurrent.futures.ThreadPoolExecutor(
         max_workers=config.CONCURRENT_DOWNLOADS
     ) as ex:
-        future_to_url = {ex.submit(download_from_url, u, config.DOWNLOADS_DIR): u for u in urls}
-        for fut in concurrent.futures.as_completed(future_to_url):
-            url = future_to_url[fut]
+        future_to_item = {
+            ex.submit(
+                download_from_url,
+                f"https://music.youtube.com/watch?v={it['videoId']}",
+                config.DOWNLOADS_DIR,
+                {"title": it.get("title"), "artists": it.get("artists")},
+            ): it
+            for it in items
+        }
+        for fut in concurrent.futures.as_completed(future_to_item):
+            it = future_to_item[fut]
             completed += 1
             try:
                 result = fut.result()
             except Exception as e:
-                result = {"ok": False, "reason": f"thread_exception: {e}", "url": url}
+                result = {"ok": False, "reason": f"thread_exception: {e}"}
 
-            label = f"[{completed}/{len(urls)}]"
+            label = f"[{completed}/{len(items)}]"
             if result.get("ok"):
-                success[url] = result
+                success[it["videoId"]] = result
                 path = result.get("filepath", "?")
-                logging.info("%s OK  | %s -> %s", label, url, path)
+                logging.info("%s OK  | %s -> %s", label, it["videoId"], path)
             else:
-                failed[url] = result
-                logging.warning("%s FAIL| %s | %s", label, url, result.get("reason"))
+                failed[it["videoId"]] = result
+                logging.warning("%s FAIL| %s | %s",
+                                label, it["videoId"], result.get("reason"))
 
             _save_json(url_success_log, success)
             _save_json(url_failed_log, failed)
