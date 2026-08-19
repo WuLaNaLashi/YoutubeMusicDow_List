@@ -7,6 +7,8 @@ LOGS_DIR = PROJECT_ROOT / "logs"
 CACHE_DIR = PROJECT_ROOT / "cache"
 
 SONGS_LIST = PROJECT_ROOT / "songs_list.txt"
+# 艺人别名表(跨语言映射,随使用自学习完善;manual 条目不被自动写入覆盖)
+ARTIST_ALIAS_FILE = SRC_DIR / "artist_alias.json"
 SUCCESS_LOG = LOGS_DIR / "success.json"
 FAILED_LOG = LOGS_DIR / "failed.json"
 SEARCH_CACHE = CACHE_DIR / "search_cache.json"

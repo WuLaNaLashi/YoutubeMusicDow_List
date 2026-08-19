@@ -18,6 +18,7 @@ except Exception:
     _opencc_t2s = None
 
 import config
+import artist_alias
 
 log = logging.getLogger(__name__)
 
@@ -54,7 +55,8 @@ def _norm(s: str) -> str:
 def search_song(title: str, artists: list[str], limit: int = 5) -> list[dict]:
     """Search YT Music; return raw result list. May raise on network issues."""
     ytm = _get_ytmusic()
-    query = " ".join([title] + artists)
+    # query 用别名表的标准名(如 高耀太->KOYOTE),中文俗名直接搜容易把候选带偏
+    query = " ".join([title] + [artist_alias.primary_name(a) for a in artists])
     log.debug("Search: %s", query)
     try:
         return ytm.search(query, filter="songs", limit=limit) or []
@@ -68,6 +70,13 @@ def search_song(title: str, artists: list[str], limit: int = 5) -> list[dict]:
             return []
 
 
+def search_artist_names(name: str, limit: int = 3) -> list[str]:
+    """YTM 艺人搜索:返回候选标准艺名(供 artist_alias.bootstrap 反查)。"""
+    ytm = _get_ytmusic()
+    results = ytm.search(name, filter="artists", limit=limit) or []
+    return [r.get("artist") or "" for r in results if r.get("artist")]
+
+
 def pick_best(
     results: list[dict],
     title: str,
@@ -79,17 +88,28 @@ def pick_best(
     deprioritize_penalty: int = 15,
     skip_artist_keywords: list[str] | None = None,
 ) -> Optional[dict]:
+    """打分规则(v2,2026-08-19 错配实测后调整):
+    - 门槛:标题(子串或字符集>=2)与艺人(含别名展开)至少一个命中,否则整条丢弃;
+      候选池没有正确答案时宁可返回 None(no_match_after_filter),不硬选错曲。
+    - 标题子串 +15,字符集交集 +min(n,8);
+    - 艺人命中 +10(查询名经 artist_alias 展开,跨语言标准名/谚文名均可命中);
+    - 搜索位置 +max(0, 16-3*index):query 携带标准艺名时 YTM 相关性排序是强先验,
+      让 불꽃-KOYOTE 这类"标题零交集但排第 1"的正确结果能胜过同名的错误版本。
+    """
     if not results:
         return None
 
     nt = _norm(title)
-    nartists = [_norm(a) for a in artists]
+    # 艺人匹配集合用别名展开(少女时代 -> [少女时代, Girls' Generation, ...])
+    nartist_sets = [
+        [_norm(v) for v in artist_alias.expand(a) if _norm(v)] for a in artists
+    ]
     skip_norm = [k.lower() for k in skip_keywords]
     skip_artist_norm = [k.lower() for k in (skip_artist_keywords or [])]
     depr_norm = [k.lower() for k in (deprioritize_keywords or [])]
 
     scored: list[tuple[int, dict]] = []
-    for r in results:
+    for idx, r in enumerate(results):
         r_title = r.get("title") or ""
         r_title_low = r_title.lower()
         if any(k in r_title_low for k in skip_norm):
@@ -116,18 +136,36 @@ def pick_best(
             continue
 
         score = 0
+        title_hit = False
         rn = _norm(r_title)
-        if nt and (nt in rn or rn in nt):
-            score += 20
+        if nt and rn and (nt in rn or rn in nt):
+            score += 15
+            title_hit = True
         elif nt and rn:
             common = len(set(nt) & set(rn))
-            score += min(common, 10)
+            if common >= 2:
+                score += min(common, 8)
+                title_hit = True
+            elif common == 1:
+                score += 1
 
-        for a in nartists:
+        artist_hit = False
+        for avars in nartist_sets:
             for ra in r_artists:
-                if a and a in _norm(ra.get("name") or ""):
-                    score += 10
+                ra_n = _norm(ra.get("name") or "")
+                if any(v in ra_n or ra_n in v for v in avars):
+                    artist_hit = True
                     break
+            if artist_hit:
+                score += 10
+                break
+
+        # 双信号门槛:标题与艺人至少一个命中,否则视为无关结果(宁缺毋错)
+        if not title_hit and not artist_hit:
+            continue
+
+        # 搜索位置先验:YTM 相关性排序,前几名加权
+        score += max(0, 16 - 3 * idx)
 
         if r.get("resultType") == "song":
             score += 5
@@ -249,6 +287,11 @@ def process_song(song: dict) -> dict:
                 return {"ok": False, "reason": "missing_videoId", "song": song}
 
             meta = download_by_video_id(video_id, config.DOWNLOADS_DIR, file_stem)
+            # 自学习:成功后把命中的同义变体名记入别名表(manual 条目受保护)
+            matched_names = [a.get("name") or "" for a in (best.get("artists") or [])]
+            for req in artists:
+                artist_alias.learn_matched(req, matched_names)
+                artist_alias.record_hit(req)
             return {
                 "ok": True,
                 "song": song,

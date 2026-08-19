@@ -12,7 +12,8 @@ from pathlib import Path
 
 import config
 from parse_list import load_songs
-from downloader import process_song
+from downloader import process_song, search_artist_names
+import artist_alias
 
 
 def setup_logging() -> Path:
@@ -78,6 +79,16 @@ def main(argv: list[str] | None = None) -> int:
     all_songs = load_songs(config.SONGS_LIST)
     logging.info("Parsed %d unique songs from %s",
                  len(all_songs), config.SONGS_LIST.name)
+
+    # 别名表增量反查:表里没有的中文艺人在 YTM 上反查标准名(如 高耀太->KOYOTE),
+    # 之后随下载成功持续自学习(见 downloader.process_song)
+    uniq_artists = {a for s in all_songs for a in s["artists"]}
+    try:
+        added = artist_alias.bootstrap(uniq_artists, search_artist_names)
+        logging.info("Artist alias file: %s (%d new mappings)",
+                     config.ARTIST_ALIAS_FILE, added)
+    except Exception as e:
+        logging.warning("Artist alias bootstrap skipped: %s", e)
 
     if args.test:
         target = select_test_sample(all_songs, args.test)

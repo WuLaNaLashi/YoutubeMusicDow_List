@@ -1,0 +1,805 @@
+{
+  "少女时代": {
+    "aliases": [
+      "Girls' Generation",
+      "소녀시대"
+    ],
+    "source": "manual",
+    "hits": 0
+  },
+  "泫雅": {
+    "aliases": [
+      "HyunA",
+      "현아"
+    ],
+    "source": "manual",
+    "hits": 0
+  },
+  "MC梦": {
+    "aliases": [
+      "MC MONG",
+      "MC몽"
+    ],
+    "source": "manual",
+    "hits": 0
+  },
+  "辉星": {
+    "aliases": [
+      "WHEESUNG",
+      "휘성"
+    ],
+    "source": "manual",
+    "hits": 0
+  },
+  "高耀太": {
+    "aliases": [
+      "KOYOTE",
+      "코요태"
+    ],
+    "source": "manual",
+    "hits": 0
+  },
+  "青山黛玛": {
+    "aliases": [
+      "Thelma Aoyama",
+      "青山テルマ"
+    ],
+    "source": "manual",
+    "hits": 0
+  },
+  "薛之谦": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "阿梨粤": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "周杰伦": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "梁静茹": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "汪苏泷": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "许嵩": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "陈奕迅": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "林俊杰": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "张学友": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "S.H.E": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "王菲": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "伍佰": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "F.I.R.飞儿乐团": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "刘德华": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "莫文蔚": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "China Blue": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "李宗盛": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "周华健": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "周传雄": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "G.E.M. 邓紫棋": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "银临": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "陈粒": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "花儿乐队": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "蔡依林": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "张杰": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "凤凰传奇": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "五月天": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "郑中基": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "王力宏": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "任贤齐": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "邓丽君": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "HENRY刘宪华": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "张韶涵": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "周深": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "张靓颖": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Taylor Swift": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Sun Yan-Zi": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "伍佰 & China Blue": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "田馥甄": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "古巨基": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "T-ara": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "赵雷": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "那英": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "张碧晨": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "金莎": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "刀郎": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "不才": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Aimer": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Linkin Park": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "BIGBANG": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "程响": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "杨千嬅": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "朴树": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "刘若英": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "飞轮海": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "谢霆锋": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "牛奶咖啡": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "李克勤": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "张敬轩": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "郁可唯": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "胡杨林": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "任素汐": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "张国荣": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "米津玄師": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "EXO": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "RADWIMPS": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "蔡健雅": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "李荣浩": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "陳慧嫻": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "郭靜": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "張信哲": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "陈绮贞": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "徐佳瑩": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "暗杠": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "罗大佑": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "杨宗纬": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "庄心妍": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "蓝心羽": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "胡彦斌": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "小沈阳": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "海鸣威": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "潘玮柏": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "一条小团团ovo": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "梁咏琪": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "徐良": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "A-Lin": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "王杰": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "BEYOND": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "崔子格": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "容祖儿": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "林忆莲": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Lady Gaga": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "郭顶": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "曾沛慈": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Backstreet Boys": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "林宥嘉": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "李健": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Rainie Yang": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "張惠妹": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Phil Chang": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "徐梦圆": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "譚詠麟": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Yao Beina": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Jam Hsiao": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Daishi Dance": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "告五人": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "SUPER JUNIOR": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "李翊君": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "周慧敏": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "筷子兄弟": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "张卫健": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "张宇": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "孙楠": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "林志炫": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "陈慧琳": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "谢安琪": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "毛不易": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "许巍": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "陈淑桦": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "胡歌": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "费玉清": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "庾澄庆": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "曲婉婷": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "草蜢": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Michael Jackson": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "南拳妈妈": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "王强": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "阿桑": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "成龙": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "陈小春": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "彭佳慧": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "毛阿敏": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "梦然": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Maroon 5": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "AGA": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Steve Chou": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "孫燕姿": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Sandy Lam": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Jolin Tsai": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "衛蘭": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "范瑋琪": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "王源": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "新裤子乐队": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "en": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "阿YueYue": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Xu Wei": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "TANK": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Jordan Chan": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "王艷薇": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "By2": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  },
+  "Park Seulgi(20Hz)": {
+    "aliases": [],
+    "source": "learned",
+    "hits": 0
+  }
+}

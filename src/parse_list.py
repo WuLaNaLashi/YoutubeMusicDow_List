@@ -33,8 +33,10 @@ def parse_line(line: str) -> Optional[dict]:
 
     artists: list[str] = []
     if artist_str:
-        # ' _ ' is the multi-artist separator in this list
-        artists = [a.strip() for a in artist_str.split("_") if a.strip()]
+        # ' _ ' 和 '&' 都是多艺人分隔符(歌单两种写法混用:
+        # "MC梦&Mellow"、"本兮_韦琪"),不拆会把整串当艺人名拼进搜索 query
+        raw_parts = [p for part in artist_str.split("_") for p in part.split("&")]
+        artists = [a.strip() for a in raw_parts if a.strip()]
 
     return {"title": title, "artists": artists, "raw": s}
 
