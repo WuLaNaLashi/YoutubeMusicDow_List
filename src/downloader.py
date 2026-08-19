@@ -170,6 +170,10 @@ def _build_ydl_opts(out_template: str) -> dict:
     }
     if config.PROXY:
         opts["proxy"] = config.PROXY
+    if config.YOUTUBE_PLAYER_CLIENT:
+        opts["extractor_args"] = {
+            "youtube": {"player_client": [config.YOUTUBE_PLAYER_CLIENT]}
+        }
     if config.COOKIES_FILE:
         opts["cookiefile"] = config.COOKIES_FILE
     elif config.COOKIES_FROM_BROWSER:

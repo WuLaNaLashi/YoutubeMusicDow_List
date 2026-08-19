@@ -57,6 +57,10 @@ SEARCH_LIMIT = 5
 
 PROXY = None
 
+# YouTube 播放器客户端：默认客户端(android vr 等)在被 bot 标记的 IP 上拿不到音频流，
+# web_embedded + cookies 实测可用（2026-08-19）
+YOUTUBE_PLAYER_CLIENT = "web_embedded"
+
 # Cookie 策略：优先使用 cookies 文件（更稳定）
 # 方式一：手动导出的 cookies.txt 文件路径
 # 方式一（推荐）：使用 cookies.txt 文件（Linux 下最稳定）
